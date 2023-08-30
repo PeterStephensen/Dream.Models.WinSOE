@@ -83,7 +83,7 @@ namespace Dream.Models.WinSOE
             settings.FirmWageMarkdownSensitivityInZone = 1 * sens;//1
 
             settings.FirmProbabilityRecalculateWage = 1.0;
-            settings.FirmProbabilityRecalculateWageInZone = 0.5;
+            settings.FirmProbabilityRecalculateWageInZone = 2.0/12; //0.5
 
             // Price ----------------------------------
             settings.FirmPriceMarkup = 1 * mark; //1
@@ -102,7 +102,7 @@ namespace Dream.Models.WinSOE
             settings.FirmComfortZoneSales = 0.10;
 
             settings.FirmProbabilityRecalculatePrice = 1.0;
-            settings.FirmProbabilityRecalculatePriceInZone = 0.5; // 0.2
+            settings.FirmProbabilityRecalculatePriceInZone = 2.0/12; // 0.5
 
             settings.FirmExpectedExcessPotentialSales = 1.0; // 
             settings.FirmGamma_y = 0.8; //1.0   !!!!!!!!!!!!!!!!!!!!!!!!!

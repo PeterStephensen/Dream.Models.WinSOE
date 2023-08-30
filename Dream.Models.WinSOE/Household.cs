@@ -35,6 +35,9 @@ namespace Dream.Models.WinSOE
         double _consumption_budget = 0;
         double _consumption_value = 0;
         double _wealth = 0;
+        double _wealth_P = 0;   // Pension
+        double _wealth_U = 0;   // Unemployment
+        double _wealth_UI = 0;  // UnIntensionally
         double[] _c = null;  // Consumption
         double[] _vc = null; // Value of consumption
         double[] _budget = null;
@@ -45,6 +48,8 @@ namespace Dream.Models.WinSOE
         int _no, _ok;
         int _nShoppings = 0;
         //bool _dead = false;
+        double _wealth_target = 0;
+        double _permanent_income = 0;
 
         #endregion
 
@@ -66,6 +71,9 @@ namespace Dream.Models.WinSOE
             _budget = new double[_settings.NumberOfSectors];
             _firmShopArray = new Firm[_settings.NumberOfSectors];
             _wealth = 0;
+            _wealth_P = 0;
+            _wealth_U = 0;
+            _wealth_UI = 0;
 
             _s_CES = new double[_settings.NumberOfSectors];
             for (int i = 0; i < _settings.NumberOfSectors; i++)   // Random share parameters in the CES-function
@@ -110,10 +118,6 @@ namespace Dream.Models.WinSOE
 
         #region EventProc
 
-
-
-        double _wealth_target = 0;
-        double _permanent_income=0;
         public override void EventProc(int idEvent)
         {
             switch (idEvent)
@@ -202,32 +206,48 @@ namespace Dream.Models.WinSOE
                     if (_time.Now <= _settings.BurnInPeriod2)
                     {
                         _wealth = 0;
+                        _wealth_P = 0;
+                        _wealth_U = 0;
+                        _wealth_UI = 0;
                         _consumption_budget = _income;
 
                     }
                     else
                     {
-                        //_consumption_budget = _income + _settings.HouseholdMPCWealth * _wealth;
-                        double mpc_w = _settings.HouseholdMPCWealth;
-                        double mpc_i = _settings.HouseholdMPCIncome;
-                        double r_extra = 0;
+                        bool bufferStock = true; // OLD specification
                         
-                        if (_age > _settings.HouseholdPensionAge)
+                        if(bufferStock)
                         {
-                            r_extra = 0.02;
-                            _consumption_budget = (r + r_extra) * _wealth + _income;
-                        }
-                        else
-                        {
-                            _consumption_budget = r * _wealth + _permanent_income + mpc_i * (_income - _permanent_income)
-                                                 + mpc_w * (_wealth - _wealth_target);
+                            //_consumption_budget = _income + _settings.HouseholdMPCWealth * _wealth;
+                            double mpc_w = _settings.HouseholdMPCWealth;
+                            double mpc_i = _settings.HouseholdMPCIncome;
+                            double r_extra = 0;
+
+                            if (_age > _settings.HouseholdPensionAge)
+                            {
+                                r_extra = 0.02;
+                                _consumption_budget = (r + r_extra) * _wealth + _income;
+                            }
+                            else
+                            {
+                                _consumption_budget = r * _wealth + _permanent_income + mpc_i * (_income - _permanent_income)
+                                                     + mpc_w * (_wealth - _wealth_target);
+
+                            }
+
+                            if ((1 + r) * _wealth + _income < 0)
+                                _consumption_budget = 0; // Default!!!!!!!!!!!!!!!!  CODE THIS !!!!!!
+                            else if (_consumption_budget > (1 + r) * _wealth + _income)
+                                _consumption_budget = (1 + r) * _wealth + _income;
 
                         }
 
-                        if ((1 + r) * _wealth + _income < 0)
-                            _consumption_budget = 0; // Default!!!!!!!!!!!!!!!!  CODE THIS !!!!!!
-                        else if (_consumption_budget > (1 + r) * _wealth + _income)
-                            _consumption_budget = (1 + r) * _wealth + _income;
+                        if (!bufferStock)  // NEW specification
+                        {
+
+
+                        }
+
 
                     }
 
@@ -288,7 +308,9 @@ namespace Dream.Models.WinSOE
                         for (int s = 0; s < _settings.NumberOfSectors; s++)
                             _consumption_value += _vc[s];
 
-                        _wealth += _income - _consumption_value;  // No interest!!
+                        _wealth += _income - _consumption_value;  // No interest!! Interest in _income
+                        
+                        _wealth_UI += _consumption_budget - _consumption_value; //PSP
 
                         //if (_time.Now > 12*40 & _wealth < 0)
                         //    MessageBox.Show("");

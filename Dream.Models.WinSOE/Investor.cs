@@ -39,7 +39,7 @@ namespace Dream.Models.WinSOE
 
             _wealth = wealth;
             _permanentIncome = permanentIncome;
-            _kappa = _settings.InvestorWealthIncomeRatioTarget;
+            //_kappa = _settings.InvestorWealthIncomeRatioTarget;
 
 
         }
@@ -106,8 +106,8 @@ namespace Dream.Models.WinSOE
 
                     // Buffe-stock a la Carroll
                     double x_bar = _settings.InvestorShareOfPermanentIncome;
-                    double a = xi;
-                    double y_bar = _permanentIncome;
+                    //double a = xi;
+                    //double y_bar = _permanentIncome;
 
                     //double x = ((1 + r) * _wealth + _income) / y_bar;
                     //_takeOut = y_bar * (x_bar + a * (x - x_bar));
