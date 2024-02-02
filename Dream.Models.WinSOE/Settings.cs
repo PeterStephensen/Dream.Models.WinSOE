@@ -375,6 +375,19 @@ namespace Dream.Models.WinSOE
 
         public int NumberOfInheritors { get; set; } = 1;
 
+        public double HouseholdProbabilityRecalculatePension { get; set; } = 0.5 / 12;
+
+        public int HouseholdPensionTimeHorizon { get; set; } = 10 * 12;
+
+        public double HouseholdPensionIncomeRate { get; set; } = 0.5;
+
+
+        public double HouseholdExpectedUnemploymentRate { get; set; } = 0.05;
+
+        public int HouseholdUnemployedTimeHorizon { get; set; } = 3;
+
+        public double HouseholdUnemploymentAdjustmentSpeed { get; set; } = 0.05;
+
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
