@@ -60,15 +60,14 @@ namespace Dream.Models.WinSOE
             settings.FirmPareto_k = 2.5;  // 2.5 k * (1 - alpha) > 1     
             settings.FirmParetoCensorTop = 0.001;
 
-            settings.FirmParetoMinPhiInitial = 1.9;
+            settings.FirmParetoMinPhiInitial = 1.9;  //1.9
 
             settings.FirmAlpha = 0.5;
-            settings.FirmFi = 2;
+            settings.FirmFi = 2;   //2
 
             //-----
             double mark = 0.05; // 0.2
             double sens = 1 / 0.75;   //1/0.1
-
 
             // Wage ----------------------------------
             settings.FirmWageMarkup = 1 * mark; //1                                              
@@ -90,7 +89,7 @@ namespace Dream.Models.WinSOE
             settings.FirmPriceMarkupSensitivity = 2 * sens; //10
             settings.FirmPriceMarkdown = 1 * mark;
             settings.FirmPriceMarkdownSensitivity = 2 * sens;  //10  
-
+                        
             // In zone
             settings.FirmPriceMarkupInZone = 0 * mark; //1
             settings.FirmPriceMarkupSensitivityInZone = 1 * sens;
@@ -146,15 +145,15 @@ namespace Dream.Models.WinSOE
             settings.HouseholdDisSaveRatePensioner = 0.01;
             settings.HouseholdDisSaveRateUnemployed = 0.05;
             settings.HouseholdSaveRate = 0.01;
-            settings.NumberOfInheritors = 5;
+            settings.NumberOfInheritors = 5;       // Not used (I think)
             settings.HouseholdMaxNumberShops = 15; // 5 When your supplier can not deliver: how many to seach for
             settings.HouseholdProbabilityReactOnAdvertisingJob = 0.25; //1
             settings.HouseholdProbabilityReactOnAdvertisingGood = 0.05; //1
             settings.HouseholdPensionAge = 67 * 12;
             settings.HouseholdStartAge = 18 * 12;
             settings.HouseholdNumberFirmsLookingForGoods = 15;
-            settings.HouseholdMPCWealth = 0.25;
-            settings.HouseholdMPCIncome = 0.75;
+            settings.HouseholdMPCWealth = 0.01;   //0.25
+            settings.HouseholdMPCIncome = 0.95;   //0.75
             settings.HouseholdTargetWealthIncomeRatio = 20;   // 6
             settings.HouseholdIncomeSmooth = 0.98;
 
@@ -162,6 +161,7 @@ namespace Dream.Models.WinSOE
 
             // Investor
             //settings.InvestorProfitSensitivity = 0.05; //0.15               
+            settings.InvestorWealthIncomeRatioTarget = 1;
 
             // Statistics
             settings.StatisticsInitialMarketPrice = 1.0;  //1.2
@@ -205,9 +205,14 @@ namespace Dream.Models.WinSOE
             settings.PeriodsPerYear = 12;
 
             settings.ShockPeriod = 200 * 12;   // 200
+            
+            //settings.Shock = EShock.Productivity;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
             settings.StatisticsOutputPeriode = 60 * 12;   
             settings.StatisticsGraphicsPlotInterval = 1;
+
+            settings.StatisticsChartUpdateInterval = 2 * 12;
 
             settings.StatisticsGraphicsStartPeriod = 65 * 12 * 100;     //!!!!!!!!!!!!!!!!!!!!!!!
             if (settings.SaveScenario)

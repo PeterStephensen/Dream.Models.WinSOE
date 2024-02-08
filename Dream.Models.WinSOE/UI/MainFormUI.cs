@@ -33,7 +33,6 @@ namespace Dream.Models.WinSOE
         string _tmpFile;
         int _scenarioRounds = 0;
 
-
         TweakForm? tweakForm = null;
         ScenariosForm? scenariosForm = null;
 
@@ -87,13 +86,11 @@ namespace Dream.Models.WinSOE
                         seed = r.Next();
 
                         // Base run
-                        sim = new SimulationRunner(saveScenario: true, winFormElements: wfe,
-                                seed: seed, shock: EShock.Nothing, atw: atw);
+                        sim = new SimulationRunner(saveScenario: true, winFormElements: wfe, shock: EShock.Nothing, seed: seed, atw: atw);
 
                         // Shocks
                         foreach (var shock in atw.Shocks)
-                            sim = new SimulationRunner(saveScenario: true, winFormElements: wfe,
-                                 seed: seed, shock: shock, atw: atw);
+                            sim = new SimulationRunner(saveScenario: true, winFormElements: wfe, shock: shock, seed: seed, atw: atw);
 
                     }
                 }
@@ -334,8 +331,6 @@ namespace Dream.Models.WinSOE
 
             }
 
-
-
         }
 
         private void runModelF5ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -373,6 +368,9 @@ namespace Dream.Models.WinSOE
 
             ChartData chartData = (ChartData)e.Result;
             plotCharts(chartData);
+
+            labelTimeUsePerYear.Location = labelPeriods.Location;
+            labelTimeUsePerYear.Text = DateTime.Now.ToString();
 
             using (Bitmap bmp = new Bitmap(this.Width, this.Height))
             {
@@ -558,8 +556,9 @@ namespace Dream.Models.WinSOE
                 {
                     if (i == 1) _formsPlot[i].Plot.SetAxisLimitsY(-2000, 10000);  // Invester income
                     if (i == 7) _formsPlot[i].Plot.SetAxisLimitsY(-0.15, 0.15);
+                    if (i == 11) _formsPlot[i].Plot.SetAxisLimitsY(0, 50);  // Wealth/Income
                     if (i == 12) _formsPlot[i].Plot.SetAxisLimitsY(0, 0.5);  // Price
-                    //if (i == 13) _formsPlot[i].Plot.SetAxisLimitsY(-0.2, 0.5);
+                    if (i == 13) _formsPlot[i].Plot.SetAxisLimitsY(-0.2, 0.5);
                     if (i == 14) _formsPlot[i].Plot.SetAxisLimitsY(-0.15, 0.15);
                     if (i == 15) _formsPlot[i].Plot.SetAxisLimitsY(-0.05, 0.1);
                     if (i == 15) _formsPlot[i].Plot.AddHorizontalLine(0.02, Color.Black, (float)0.1, LineStyle.Dot);

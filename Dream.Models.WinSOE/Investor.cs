@@ -98,7 +98,9 @@ namespace Dream.Models.WinSOE
 
                 _income = _statistics.TotalProfit;
                 _permanentIncome = gamma * _permanentIncome + (1 - gamma) * _income;
-                _wealthTarget = kappa * _permanentIncome;
+                
+                //_wealthTarget = kappa * _permanentIncome;
+                _wealthTarget = 0.1 * _statistics.PublicHouseholdWealth;
 
                 _takeOut = 0;
                 if (_age > _settings.InvestorBuildUpPeriods)

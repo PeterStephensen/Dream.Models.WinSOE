@@ -51,7 +51,7 @@ namespace Dream.Models.WinSOE
         double _wealth_target = 0;
         double _permanent_income = 0;
         double _w_exp; // Expected wage
-
+        bool _bbudget = false;
         #endregion
 
         #region Constructors
@@ -142,6 +142,7 @@ namespace Dream.Models.WinSOE
                 case Event.System.PeriodStart:
                     #region Event.System.PeriodStart
 
+                    _bbudget = false;
                     bool unemployed = _firmEmployment == null;
                     //bool unemployed = _fired | _w == 0;  // Unemployed if just fired or if wage is zero
                     //if (_fired) _fired = false; // Fired only 1 period
@@ -151,7 +152,7 @@ namespace Dream.Models.WinSOE
                     _unempDuration = !unemployed ? 0 : _unempDuration+1;
                     if (_time.Now == 0) _w = _simulation.Statistics.PublicMarketWageTotal;
 
-                    if(_time.Now % _settings.PeriodsPerYear==0)
+                    if(_time.Now % _settings.PeriodsPerYear==0)  // Skal fjernes!!!!!!!!!!!!!!!
                     {
                         _yr_consumption = 0;
                         _yr_employment = 0;
@@ -173,6 +174,9 @@ namespace Dream.Models.WinSOE
 
                 case Event.Economics.Update:
                     #region Event.Economics.Update
+                    _bbudget = true;
+
+
                     _w = _firmEmployment == null ? 0.0 : _firmEmployment.FullWage;
 
                     //double r = _statistics.PublicInterestRate;
@@ -268,7 +272,7 @@ namespace Dream.Models.WinSOE
 
                             double save_P = 0;
                             double save_U = 0;
-                            r = _statistics.PublicInterestRate;   // Expected future rate of interest
+                            r = _statistics.PublicExpectedInterestRate;   // Expected future rate of interest
                             int n_U = _settings.HouseholdUnemployedTimeHorizon;
 
                             if (_firmEmployment == null & _age < _settings.HouseholdPensionAge)  // If unemployed and in labor force
@@ -341,8 +345,6 @@ namespace Dream.Models.WinSOE
                     }
 
 
-
-
                     if (_age >= _settings.HouseholdPensionAge)  // Retirement
                     {
                         if (_firmEmployment != null)           // If employed
@@ -378,14 +380,19 @@ namespace Dream.Models.WinSOE
                             SearchForShop(s);
 
                     MakeBudget();
+                    _bbudget = true;
                     break;
                     #endregion
 
                 case Event.Economics.Shopping:
                     #region Event.Economics.Shopping
+                    int tt = _time.Now;
+                    bool b = _bbudget;
+
                     if (_nShoppings == 0)
-                        if (_consumption_budget > 0 & _budget[0] == 0) //???????????????????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                            _budget[0] = _consumption_budget;
+                        if (_consumption_budget > 0 & _budget[0] <= 0 & _time.Now>12*1) //???????????????????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            throw new Exception("_consumption_budget > 0 & _budget[0] <= 0");
+                            //_budget[0] = _consumption_budget;
 
                     BuyFromShops();
                     _yr_consumption += _consumption;  // Kill this
@@ -477,11 +484,19 @@ namespace Dream.Models.WinSOE
                 throw new Exception("Budget is negative");
           
             int nRemaining = _settings.HouseholdNumberShoppingsPerPeriod - _nShoppings;  // Remaining shoppings this period
+            if (nRemaining == 0)
+                throw new Exception("nRemaining is 0");
 
             if (_firmShopArray[sector] == null)
             {
-                _firmShopArray[sector] = _simulation.GetRandomOpenFirm(sector); //SearchForShop ???????????????????????
+                _firmShopArray[sector] = _simulation.GetRandomOpenFirm(sector, 1000); //SearchForShop ???????????????????????
                 _statistics.Communicate(EStatistics.ChangeShopInBuyFromShopNull, this);
+
+                if (_firmShopArray[sector] == null)
+                {
+                    _statistics.Communicate(EStatistics.CouldNotFindOpenFirm, this);
+                    return;
+                }
             }
 
             if(_budget[sector] == 0)
@@ -500,6 +515,9 @@ namespace Dream.Models.WinSOE
                 _c[sector] += buy / _firmShopArray[sector].Price;
                 _vc[sector] += buy;
                 _budget[sector] -= buy;
+
+                if (_budget[sector] < 0)
+                    throw new Exception("Negative budget");
                 
 
                 _statistics.Communicate(EStatistics.SuccesfullTrade, this);
@@ -519,6 +537,10 @@ namespace Dream.Models.WinSOE
                     _vc[sector] += vc;
                     _budget[sector] -= vc;
                     buy -= vc;
+
+                    if (_budget[sector] < 0)
+                        throw new Exception("Negative budget");
+
                 }
 
                 Firm f = _simulation.GetNextFirmWithGoods(buy, sector, _settings.HouseholdNumberFirmsLookingForGoods);
@@ -531,6 +553,10 @@ namespace Dream.Models.WinSOE
                         _c[sector] += buy / _firmShopArray[sector].Price;
                         _vc[sector] += buy;
                         _budget[sector] -= buy;
+
+                        if (_budget[sector] < 0)
+                            throw new Exception("Negative budget");
+
 
                     }
                     _statistics.Communicate(EStatistics.ChangeShopInBuyFromShopLookingForGoods, this);
@@ -576,7 +602,16 @@ namespace Dream.Models.WinSOE
                 _budget[s] = _s_CES[s] * Math.Pow(_firmShopArray[s].Price / _P_CES, 1 - _settings.HouseholdCES_Elasticity) * _consumption_budget;
                 _c[s] = 0; // Initialization
                 _vc[s] = 0; // Initialization
+
+                if (_budget[s] < 0)
+                    throw new Exception("Negative budget!!");
+
+                if (_budget[s] == 0 & _consumption_budget>0)
+                    throw new Exception("_budget[s] == 0 & _consumption_budget>0");
+
+
             }
+
 
         }
 
@@ -624,7 +659,7 @@ namespace Dream.Models.WinSOE
 
             Firm[] firms = null;
             if (_time.Now<12*5) // Solving up-start problem  
-                firms = _simulation.GetRandomOpenFirms(_settings.HouseholdNumberFirmsSearchShop, sector);
+                firms = _simulation.GetRandomOpenFirms(_settings.HouseholdNumberFirmsSearchShop, sector, 1000);
             else
                 firms = _simulation.GetRandomFirmsFromHouseholdsGood(_settings.HouseholdNumberFirmsSearchShop, sector);
 

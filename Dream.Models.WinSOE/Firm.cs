@@ -242,7 +242,7 @@ namespace Dream.Models.WinSOE
                     _statistics.Communicate(EStatistics.Profit, this);
 
                     if (_time.Now > 4)
-                        _value = (1 + _statistics.PublicInterestRate) * _value + _profit;
+                        _value = (1 + _statistics.PublicExpectedInterestRate) * _value + _profit;
 
                     _age++;
                     break;

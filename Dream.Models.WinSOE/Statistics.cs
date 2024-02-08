@@ -59,7 +59,7 @@ namespace Dream.Models.WinSOE
         StreamWriter _fileFirmApplications;
         double _macroProductivity = 1.0;
         double[] _sectorProductivity;
-        double _interestRate;
+        double _expectedInterestRate;
         double _meanValue = 0;
         double _discountedProfits = 0;
         int _nFirmCloseNatural = 0, _nFirmCloseNegativeProfit = 0, _nFirmCloseTooBig = 0, _nFirmCloseZeroEmployment=0;
@@ -98,6 +98,7 @@ namespace Dream.Models.WinSOE
         double _wage_lag = 0, _price_lag = 0;
         double _stock, _wealth;
         double _totalProfit;
+        double _expextedWage = 1;
 
         // Chart output
         ChartData _chartData;
@@ -131,7 +132,7 @@ namespace Dream.Models.WinSOE
             _marketPriceTotal = _settings.StatisticsInitialMarketPrice;
             _marketWageTotal = _settings.StatisticsInitialMarketWage;
             _wageMedian = _settings.StatisticsInitialMarketWage;
-            _interestRate = _settings.StatisticsInitialInterestRate;
+            _expectedInterestRate = _settings.StatisticsInitialInterestRate;
 
             //var options = new JsonSerializerOptions { WriteIndented = true };
             //string sJson = JsonSerializer.Serialize(_settings, options);
@@ -211,13 +212,41 @@ namespace Dream.Models.WinSOE
                     {
                         _totalProfit += fi.Profit;
 
-                        discountedProfitsTotal += fi.Profit / Math.Pow(1 + _interestRate, fi.Age); 
-                        discountedProfits[fi.Sector] += fi.Profit / Math.Pow(1 + _interestRate, fi.Age);
+                        discountedProfitsTotal += fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age); 
+                        discountedProfits[fi.Sector] += fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age);
                         nFirms[fi.Sector]++; 
                     }
 
                     //_profitPerHousehold = _totalProfit / _simulation.Households.Count;
-                    if(_time.Now>_settings.BurnInPeriod2)
+                    // HERFRA!!!!!!!!!!!!!!!
+
+
+                    double dpTotal = discountedProfitsTotal / _firmInfo.Count;
+                    
+                    double[] dp = new double[_settings.NumberOfSectors];
+                    for (int i = 0; i < _settings.NumberOfSectors; i++) dp[i] = discountedProfits[i] / nFirms[i];
+
+                    _sigmaRiskTotal = 0;
+                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = 0;
+                    foreach (var fi in _firmInfo)
+                    {
+                        _sigmaRiskTotal += Math.Pow(fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age) - dpTotal, 2);
+                        _sigmaRisk[fi.Sector] += Math.Pow(fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age) - dp[fi.Sector], 2);
+                    }
+
+                    _sigmaRiskTotal = Math.Sqrt(_sigmaRiskTotal / _firmInfo.Count);
+                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = Math.Sqrt(_sigmaRisk[i] / nFirms[i]);
+
+                    _sharpeRatioTotal = _sigmaRiskTotal > 0 ? dpTotal / _sigmaRiskTotal : 0;
+                    _expSharpeRatioTotal = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatioTotal + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatioTotal;
+
+                    for (int i = 0; i < _settings.NumberOfSectors; i++)
+                    {
+                        _sharpeRatio[i] = _sigmaRisk[i] > 0 ? dp[i] / _sigmaRisk[i] : 0;
+                        _expSharpeRatio[i] = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatio[i] + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatio[i];
+                    }
+
+                    if (_time.Now > _settings.BurnInPeriod2)
                     {
                         _simulation.Investor.Iterate();
                         _profitPerHousehold = _simulation.Investor.TakeOut / _simulation.Households.Count;
@@ -231,36 +260,10 @@ namespace Dream.Models.WinSOE
 
                         //-----------------------------------------------------------------------------------------------
                         // Endogenous interest rate!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        double smooth = 0.99;
+                        double smooth = 0.99;  //0.99
                         if (_time.Now > _settings.BurnInPeriod2)
-                            _interestRate = smooth * _interestRate + (1 - smooth) * _profitPerWealthUnit;
+                            _expectedInterestRate = smooth * _expectedInterestRate + (1 - smooth) * _profitPerWealthUnit;
                         //-----------------------------------------------------------------------------------------------
-                    }
-
-
-                    double dpTotal = discountedProfitsTotal / _firmInfo.Count;
-                    
-                    double[] dp = new double[_settings.NumberOfSectors];
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) dp[i] = discountedProfits[i] / nFirms[i];
-
-                    _sigmaRiskTotal = 0;
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = 0;
-                    foreach (var fi in _firmInfo)
-                    {
-                        _sigmaRiskTotal += Math.Pow(fi.Profit / Math.Pow(1 + _interestRate, fi.Age) - dpTotal, 2);
-                        _sigmaRisk[fi.Sector] += Math.Pow(fi.Profit / Math.Pow(1 + _interestRate, fi.Age) - dp[fi.Sector], 2);
-                    }
-
-                    _sigmaRiskTotal = Math.Sqrt(_sigmaRiskTotal / _firmInfo.Count);
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = Math.Sqrt(_sigmaRisk[i] / nFirms[i]);
-
-                    _sharpeRatioTotal = _sigmaRiskTotal > 0 ? dpTotal / _sigmaRiskTotal : 0;
-                    _expSharpeRatioTotal = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatioTotal + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatioTotal;
-
-                    for (int i = 0; i < _settings.NumberOfSectors; i++)
-                    {
-                        _sharpeRatio[i] = _sigmaRisk[i] > 0 ? dp[i] / _sigmaRisk[i] : 0;
-                        _expSharpeRatio[i] = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatio[i] + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatio[i];
                     }
 
                     //PSP
@@ -364,7 +367,7 @@ namespace Dream.Models.WinSOE
                             _meanValue += f.Value;
                             mean_age += f.Age;
                             tot_vacancies += f.Vacancies;
-                            _discountedProfits += f.Profit / Math.Pow(1+_interestRate, f.Age);
+                            _discountedProfits += f.Profit / Math.Pow(1+_expectedInterestRate, f.Age);
                             no += f.NumberOfNo;
                             ok += f.NumberOfOK;
                         }
@@ -524,7 +527,7 @@ namespace Dream.Models.WinSOE
                                     nFirm[i] = _simulation.Sector(i).Count;
                                     foreach (Firm f in _simulation.Sector(i))
                                     {
-                                        double disc = 1.0 / (1 + _interestRate);
+                                        double disc = 1.0 / (1 + _expectedInterestRate);
                                         double discProfit = f.Profit * Math.Pow(disc, f.Age) / _marketPrice[f.Sector];
 
                                         sw.WriteLineTab(f.Productivity, f.OptimalEmployment, f.OptimalProduction, f.Employment, f.Profit,
@@ -604,6 +607,8 @@ namespace Dream.Models.WinSOE
                     {
                         double gg = Math.Pow(1 + 0.02, 1.0 / 12) - 1;
                         double corr = Math.Pow(1 + gg, _time.Now);
+                        double smooth = 0.99;
+                        _expextedWage = smooth * _expextedWage + (1 - smooth) * _marketWageTotal;
 
                         _chartData.nFirms[_time.Now] = n_firms;
                         _chartData.nHouseholds[_time.Now] = _simulation.Households.Count;
@@ -621,21 +626,27 @@ namespace Dream.Models.WinSOE
                         _chartData.LaborSupplyProductivity[_time.Now] = _n_laborSupply;
                         _chartData.ProfitPerHousehold[_time.Now] = _profitPerHousehold;
                         _chartData.ProfitPerWealthUnit[_time.Now] = Math.Pow(1+_profitPerWealthUnit, _settings.PeriodsPerYear) - 1 ;
-                        _chartData.InterestRate[_time.Now] = Math.Pow(1 + _interestRate, _settings.PeriodsPerYear) - 1;
+                        _chartData.InterestRate[_time.Now] = Math.Pow(1 + _expectedInterestRate, _settings.PeriodsPerYear) - 1;
                         _chartData.ProfitShare[_time.Now] = _profitPerHousehold * _simulation.Households.Count /
                                                                      (_profitPerHousehold * _simulation.Households.Count + wage_income);
                         _chartData.Inflation[_time.Now] = Math.Pow(_inflation + 1, 12) - 1;
                         _chartData.RealWageInflation[_time.Now] = Math.Pow(_realwage_inflation + 1, _settings.PeriodsPerYear) - 1;
 
-                        _chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _marketWageTotal;
-                        _chartData.InvestorIncome[_time.Now] = _simulation.Investor.Income / _marketWageTotal;
-                        _chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _marketWageTotal;
-                        _chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _marketWageTotal;
-                        _chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _marketWageTotal;
+                        //_chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _marketWageTotal;
+                        //_chartData.InvestorIncome[_time.Now] = _simulation.Investor.Income / _marketWageTotal;
+                        //_chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _marketWageTotal;
+                        //_chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _marketWageTotal;
+                        //_chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _marketWageTotal;
+
+                        _chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _expextedWage;
+                        _chartData.InvestorIncome[_time.Now] = _simulation.Investor.Income / _expextedWage;
+                        _chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _expextedWage;
+                        _chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _expextedWage;
+                        _chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _expextedWage;
 
                         MainFormUI mainFormUI = _simulation.WinFormElements.MainFormUI;
 
-                        if (_time.Now % (2 * 12) == 0)
+                        if (_time.Now % _settings.StatisticsChartUpdateInterval == 0)
                         {
                             _chartData.Wait = 0;
                             while (mainFormUI.Busy)
@@ -688,7 +699,7 @@ namespace Dream.Models.WinSOE
                                                 _marketWageTotal,n_firms, _totalEmployment, _totalSales, _laborSupplyProductivity, _n_laborSupply, _n_unemployed,
                                                 _totalProduction, _simulation.Households.Count, _nFirmNew, nFirmClosed, _sigmaRiskTotal, _sharpeRatioTotal, 
                                                 mean_age, tot_vacancies, _marketPrice[0], _marketWage[0], _employment[0], _sales[0], 
-                                                _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, _totalPotensialSales, _interestRate);
+                                                _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, _totalPotensialSales, _expectedInterestRate);
 
                     //_fileMacro.Flush();
 
@@ -1097,9 +1108,13 @@ namespace Dream.Models.WinSOE
         /// <summary>
         /// Interest rate per period
         /// </summary>
-        public double PublicInterestRate
+        public double PublicExpectedInterestRate
         {
-            get { return _interestRate; }
+            get { return _expectedInterestRate; }
+        }
+        public double PublicHouseholdWealth
+        {
+            get { return _wealth; }
         }
 
         /// <summary>

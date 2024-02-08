@@ -159,6 +159,7 @@ namespace Dream.Models.WinSOE
                 {
                     for (int i = 0; i < n_perSector; i++)
                     {
+
                         List<Household> hs = new();
                         for (int j = 0; j < settings.NumberOfHouseholdsPerFirm; j++)
                         {
@@ -171,6 +172,7 @@ namespace Dream.Models.WinSOE
                         _sectorList[s] += f;
                         foreach (Household h in hs)
                             h.Communicate(ECommunicate.Initialize, f); // Tell households where they are employed
+
                     }
                 }
             }
@@ -196,17 +198,16 @@ namespace Dream.Models.WinSOE
                         this.EventProc(Event.System.PeriodStart);
                         this.EventProc(Event.Economics.Update);
                         for (int i = 0; i < _settings.HouseholdNumberShoppingsPerPeriod; i++)
-                        {
                             _households.EventProc(Event.Economics.Shopping);
-                            //_households.RandomizeAgents();
-                        }
                         this.EventProc(Event.System.PeriodEnd);
+
+                        _households.RandomizeAgents();
+                        foreach (Agent firms in _sectors)
+                            firms.RandomizeAgents();
 
                         if (testCancel())
                             break;
 
-                        //foreach(Agent firms in _sectors)
-                        //   firms.RandomizeAgents();
                     } while (_time.NextPeriod());
 
                     _t0 = DateTime.Now;
@@ -367,8 +368,9 @@ namespace Dream.Models.WinSOE
 
             if (_randomHousehold == null)
             {
-                //if (_random.NextDouble() < 0.5)                    
-                _households.RandomizeAgents();
+                
+                // No randomization!!!!
+                //_households.RandomizeAgents();
                 _randomHousehold = (Household)_households.FirstAgent;
             }
             return _randomHousehold;
@@ -460,9 +462,9 @@ namespace Dream.Models.WinSOE
             _randomFirm[sector] = (Firm)_randomFirm[sector].NextAgent;
             if (_randomFirm[sector] == null) // If no more firms i list
             {
-                if (randomize)
-                    //if(_random.NextDouble()<0.5)
-                    _sectorList[sector].RandomizeAgents();
+                // No randomization!!!!
+                //if (randomize)
+                //    _sectorList[sector].RandomizeAgents();
 
                 _randomFirm[sector] = (Firm)_sectorList[sector].FirstAgent;
             }
@@ -490,7 +492,7 @@ namespace Dream.Models.WinSOE
             return _randomFirm[sector];
 
         }
-        public Firm GetRandomOpenFirm(int sector)
+        public Firm GetRandomOpenFirm(int sector, int numberOfDraws)
         {
 
             if (_time.Now < _settings.BurnInPeriod2)
@@ -504,8 +506,8 @@ namespace Dream.Models.WinSOE
                 f = GetRandomFirm(sector);
                 open = f.Open;
                 i++;
-                if (i > 1000)
-                    throw new Exception("No open firms");
+                if (i > numberOfDraws)
+                    return null;
             }
 
             return f;
@@ -525,13 +527,14 @@ namespace Dream.Models.WinSOE
 
             return lst;
         }
-        public Firm[] GetRandomOpenFirms(int n, int sector)
+        
+        public Firm[] GetRandomOpenFirms(int n, int sector, int numberOfDraws)
         {
             if (n < 1) return null;
 
             Firm[] lst = new Firm[n];
             for (int i = 0; i < n; i++)
-                lst[i] = GetRandomOpenFirm(sector);
+                lst[i] = GetRandomOpenFirm(sector, numberOfDraws);
 
             return lst;
         }

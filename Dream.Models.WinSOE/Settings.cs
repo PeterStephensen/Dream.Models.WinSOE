@@ -396,7 +396,7 @@ namespace Dream.Models.WinSOE
         public int InvestorInitialInflow { get; set; } = 0;
 
         [Tweakable(0,1)]
-        public double InvestorProfitSensitivity { get; set; } = 0.025;
+        public double InvestorProfitSensitivity { get; set; } = 0.05;  //0.025
 
         /// <summary>
         /// Smoothing parameter in calculation of permanent profit income
@@ -462,6 +462,7 @@ namespace Dream.Models.WinSOE
 
         public int StatisticsGraphicsStartPeriod { get; set; } = 0;
 
+        public int StatisticsChartUpdateInterval { get; set; } = 12;
 
         public int StatisticsOutputPeriode { get; set; } = -1;
 
