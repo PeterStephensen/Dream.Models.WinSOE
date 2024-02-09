@@ -128,7 +128,7 @@ namespace Dream.Models.WinSOE
             settings.FirmProfitLimitZeroPeriod = (2040 - 2014) * 12;
 
             settings.FirmProductivityGrowth = 0.02;
-
+           
             settings.FirmStockDepreciation = 0.25;
 
             // Households
@@ -145,7 +145,7 @@ namespace Dream.Models.WinSOE
             settings.HouseholdDisSaveRatePensioner = 0.01;
             settings.HouseholdDisSaveRateUnemployed = 0.05;
             settings.HouseholdSaveRate = 0.01;
-            settings.NumberOfInheritors = 5;       // Not used (I think)
+            settings.NumberOfInheritors = 15;       
             settings.HouseholdMaxNumberShops = 15; // 5 When your supplier can not deliver: how many to seach for
             settings.HouseholdProbabilityReactOnAdvertisingJob = 0.25; //1
             settings.HouseholdProbabilityReactOnAdvertisingGood = 0.05; //1
@@ -160,8 +160,7 @@ namespace Dream.Models.WinSOE
             settings.HouseholdProfitShare = 1; // Should be 1 !!!!!!!!!!!!!!!!!!
 
             // Investor
-            //settings.InvestorProfitSensitivity = 0.05; //0.15               
-            settings.InvestorWealthIncomeRatioTarget = 1;
+            // Look in settings
 
             // Statistics
             settings.StatisticsInitialMarketPrice = 1.0;  //1.2

@@ -394,6 +394,7 @@ namespace Dream.Models.WinSOE
         /// Initial size of investor firm portefolio
         /// </summary>
         public int InvestorInitialInflow { get; set; } = 0;
+        // Warning: Over written in SimulationRunner 
 
         [Tweakable(0,1)]
         public double InvestorProfitSensitivity { get; set; } = 0.05;  //0.025
@@ -408,19 +409,19 @@ namespace Dream.Models.WinSOE
         /// Investors target for wealth-income-ratio in buffer-stock-behavior
         /// </summary>
         [Tweakable(0, 20)]
-        public double InvestorWealthIncomeRatioTarget { get; set; } = 3;
+        public double InvestorWealthIncomeRatioTarget { get; set; } = 0.2;
 
         /// <summary>
         /// Investors marginal propensity to consume out of transitory income
         /// </summary>
         [Tweakable(0, 1)]
-        public double InvestorMPCIncome { get; set; } = 0; // 0.25
+        public double InvestorMPCIncome { get; set; } = 0.25; // 0
 
         /// <summary>
         /// Investors marginal propensity to consume out of wealth
         /// </summary>
         [Tweakable(0, 1)]
-        public double InvestorMPCWealth { get; set; } = 0.95;
+        public double InvestorMPCWealth { get; set; } = 0.75; //0.95
 
         
         /// <summary>

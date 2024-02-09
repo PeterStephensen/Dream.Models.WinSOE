@@ -22,7 +22,7 @@ namespace Dream.Models.WinSOE
         Statistics _statistics;
         double _income;
         double _permanentIncome;
-        double _wealth;
+        double _wealth=0;
         double _wealthTarget;
         double _takeOut;
         int _age = 0;
@@ -98,24 +98,21 @@ namespace Dream.Models.WinSOE
 
                 _income = _statistics.TotalProfit;
                 _permanentIncome = gamma * _permanentIncome + (1 - gamma) * _income;
-                
+
                 //_wealthTarget = kappa * _permanentIncome;
-                _wealthTarget = 0.1 * _statistics.PublicHouseholdWealth;
+                _wealthTarget = kappa * _statistics.PublicHouseholdWealth;
+                //_wealthTarget = 0.1 * _statistics.PublicHouseholdWealth;
 
                 _takeOut = 0;
                 if (_age > _settings.InvestorBuildUpPeriods)
                 {
 
-                    // Buffe-stock a la Carroll
+                    // Buffe-stock 
                     double x_bar = _settings.InvestorShareOfPermanentIncome;
-                    //double a = xi;
-                    //double y_bar = _permanentIncome;
-
-                    //double x = ((1 + r) * _wealth + _income) / y_bar;
-                    //_takeOut = y_bar * (x_bar + a * (x - x_bar));
                                                             
                     _takeOut = r * _wealth + x_bar * _permanentIncome + xi * (_income - x_bar * _permanentIncome)
                                                              + eta * (_wealth - _wealthTarget);
+
                     if (_takeOut < 0) _takeOut = 0;
 
                     if ((1 + r) * _wealth + _income < 0) // Finansial Crises
@@ -123,11 +120,11 @@ namespace Dream.Models.WinSOE
                     else if (_takeOut > (1 + r) * _wealth + _income)
                         _takeOut = (1 + r) * _wealth + _income;
 
-                    //_kappa += - 0.0001 * (_wealth - _wealthTarget);
-
+                    _takeOut = _income;  //!!!!!!!!!!!!!!!!!!!!!
                 }
 
-                _wealth = (1 + r) * _wealth + _income - _takeOut;
+                //_wealth = (1 + r) * _wealth + _income - _takeOut;
+                _wealth = 0; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                 _age++;
 

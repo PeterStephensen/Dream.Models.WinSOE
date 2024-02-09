@@ -420,7 +420,7 @@ namespace Dream.Models.WinSOE
                                 _statistics.Communicate(EStatistics.Death, _w * _productivity); // Wage earned this period
                             }
 
-                            //Inheritance();
+                            Inheritance();
                             RemoveThisAgent();
                             return;
                         }

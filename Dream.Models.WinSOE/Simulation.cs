@@ -96,7 +96,7 @@ namespace Dream.Models.WinSOE
             _statistics = new Statistics();
             _publicSector = new PublicSector(); // Not used
             _forecaster = new Forecaster();     // Not used
-            _investor = new Investor(5000,0);
+            _investor = new Investor(0,0);
             _households = new Agents<Household>();
             _tools = new Agents<Agent>();
 
