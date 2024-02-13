@@ -49,9 +49,9 @@ namespace Dream.Models.WinSOE
         int _nShoppings = 0;
         //bool _dead = false;
         double _wealth_target = 0;
-        double _permanent_income = 0;
+        double _expected_income = 0;
+        double _expected_r = 0;
         double _w_exp; // Expected wage
-        bool _bbudget = false;
         #endregion
 
         #region Constructors
@@ -142,7 +142,6 @@ namespace Dream.Models.WinSOE
                 case Event.System.PeriodStart:
                     #region Event.System.PeriodStart
 
-                    _bbudget = false;
                     bool unemployed = _firmEmployment == null;
                     //bool unemployed = _fired | _w == 0;  // Unemployed if just fired or if wage is zero
                     //if (_fired) _fired = false; // Fired only 1 period
@@ -174,25 +173,30 @@ namespace Dream.Models.WinSOE
 
                 case Event.Economics.Update:
                     #region Event.Economics.Update
-                    _bbudget = true;
 
 
                     _w = _firmEmployment == null ? 0.0 : _firmEmployment.FullWage;
 
                     //double r = _statistics.PublicInterestRate;
-                    double r = 0;  // Interest income comes from profit income
+                    //double r = 0;  // Interest income comes from profit income
                     double smooth = _settings.HouseholdIncomeSmooth;
 
                     // Income calculadet here because PublicProfitPerHousehold is calculated during PeriodStart-event by the Statistics object
                     //_income = _w * _productivity + _settings.HouseholdProfitShare * _simulation.Statistics.PublicProfitPerHousehold;
-                    
+
                     //_wealth = _wealth_P + _wealth_U + _wealth_UI;            <===============================
-                    
-                    _income = _w * _productivity + _settings.HouseholdProfitShare * _simulation.Statistics.PublicProfitPerWealthUnit * _wealth;
-                    _permanent_income = smooth * _permanent_income + (1 - smooth) * _income;
-                    if(_w>0)
+
+                    //_income = _w * _productivity + _settings.HouseholdProfitShare * _simulation.Statistics.PublicProfitPerWealthUnit * _wealth;
+                    _income = _w * _productivity;
+
+                    _expected_income = smooth * _expected_income + (1 - smooth) * _income;
+                    _expected_r =      smooth * _expected_r      + (1 - smooth) * _simulation.Statistics.PublicProfitPerWealthUnit;
+
+                    // Not used
+                    if (_w>0)
                         _w_exp = smooth * _w_exp + (1 - smooth) * _w * _productivity;
-                    _wealth_target = _settings.HouseholdTargetWealthIncomeRatio * _permanent_income; 
+                    
+                    _wealth_target = _settings.HouseholdTargetWealthIncomeRatio * _expected_income; 
 
                     #region Not used (Saving)
                     //if (_age >= _settings.HouseholdPensionAge) // If pensioner
@@ -215,9 +219,9 @@ namespace Dream.Models.WinSOE
                     if (_time.Now <= _settings.BurnInPeriod2)
                     {
                         _wealth = 0;
-                        _wealth_P = 0;
-                        _wealth_U = 0;
-                        _wealth_UI = 0;
+                        //_wealth_P = 0;
+                        //_wealth_U = 0;
+                        //_wealth_UI = 0;
                         _consumption_budget = _income;
 
                     }
@@ -230,118 +234,126 @@ namespace Dream.Models.WinSOE
                             //_consumption_budget = _income + _settings.HouseholdMPCWealth * _wealth;
                             double mpc_w = _settings.HouseholdMPCWealth;
                             double mpc_i = _settings.HouseholdMPCIncome;
+                            double mpc_c = _settings.HouseholdMPCCapitalIncome;
                             double r_extra = 0;
+                            double r = _simulation.Statistics.PublicProfitPerWealthUnit;
 
                             if (_age > _settings.HouseholdPensionAge)
                             {
                                 r_extra = 0.02;
                                 _consumption_budget = (r + r_extra) * _wealth + _income;
+                                //_consumption_budget = 0.1 * _wealth;
+
                             }
+                            //else if (_firmEmployment == null) // Unemployed
+                            //{
+                            //    _consumption_budget = Math.Min(0.5 * _expected_income, _wealth);
+                            //}
                             else
                             {
-                                _consumption_budget = r * _wealth + _permanent_income + mpc_i * (_income - _permanent_income)
-                                                     + mpc_w * (_wealth - _wealth_target);
+                                //_consumption_budget = r * _wealth + _expected_income + mpc_i * (_income - _expected_income)
+                                //                     + mpc_w * (_wealth - _wealth_target);
 
-                                if (_consumption_budget < 0) _consumption_budget = 0;
+                                _consumption_budget = _expected_r * _wealth + _expected_income + mpc_i * (_income - _expected_income) + mpc_c * (r - _expected_r) * _wealth
+                                                       + mpc_w * (_wealth - _wealth_target);
 
 
                             }
 
-                            if ((1 + r) * _wealth + _income < 0)
-                                _consumption_budget = 0; // Default!!!!!!!!!!!!!!!!  CODE THIS !!!!!!
-                            else if (_consumption_budget > (1 + r) * _wealth + _income)
-                                _consumption_budget = (1 + r) * _wealth + _income;
+                            //if ((1 + r) * _wealth + _income < 0)
+                            //    _consumption_budget = 0; // Default!!!!!!!!!!!!!!!!  CODE THIS !!!!!!
+                            //else if (_consumption_budget > (1 + r) * _wealth + _income)
+                            //    _consumption_budget = (1 + r) * _wealth + _income;
 
-                            if (_consumption_budget < 0)
-                                throw new Exception("_consumption_budget < 0");
-
-
+                            if (_consumption_budget < 0) _consumption_budget = 0;
 
                         }
 
-                        if (!bufferStock)  // NEW specification
-                        {
-                            if (_age >= _settings.HouseholdPensionAge)  // Retirement
-                            {
-                                if (_firmEmployment != null)           // If employed
-                                {
-                                    _firmEmployment.Communicate(ECommunicate.IQuit, this);
-                                    _firmEmployment = null;
-                                }
-                            }
+                        #region New Specification. Not used
+                        //if (!bufferStock)  // NEW specification
+                        //{
+                        //    if (_age >= _settings.HouseholdPensionAge)  // Retirement
+                        //    {
+                        //        if (_firmEmployment != null)           // If employed
+                        //        {
+                        //            _firmEmployment.Communicate(ECommunicate.IQuit, this);
+                        //            _firmEmployment = null;
+                        //        }
+                        //    }
 
-                            double save_P = 0;
-                            double save_U = 0;
-                            r = _statistics.PublicExpectedInterestRate;   // Expected future rate of interest
-                            int n_U = _settings.HouseholdUnemployedTimeHorizon;
+                        //    double save_P = 0;
+                        //    double save_U = 0;
+                        //    double r = _statistics.PublicExpectedInterestRate;   // Expected future rate of interest
+                        //    int n_U = _settings.HouseholdUnemployedTimeHorizon;
 
-                            if (_firmEmployment == null & _age < _settings.HouseholdPensionAge)  // If unemployed and in labor force
-                            {
-                                // No savings
-                                _consumption_budget = _wealth_U / n_U;
-                                _wealth_U = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U - _consumption_budget;   // Actual interest rate
-                                _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P;
+                        //    if (_firmEmployment == null & _age < _settings.HouseholdPensionAge)  // If unemployed and in labor force
+                        //    {
+                        //        // No savings
+                        //        _consumption_budget = _wealth_U / n_U;
+                        //        _wealth_U = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U - _consumption_budget;   // Actual interest rate
+                        //        _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P;
 
-                            }
-                            else 
-                            {
+                        //    }
+                        //    else 
+                        //    {
                                 
-                                if(_age < _settings.HouseholdPensionAge) // If employed and in labor force
-                                {
-                                    int aP = _settings.HouseholdPensionAge;
-                                    double alphaP = r / (1 - Math.Pow(1.0 / (1 + r), _settings.HouseholdPensionTimeHorizon));
-                                    double alpha = r / (1 - Math.Pow(1.0 / (1 + r), 1 + aP - _age));
-                                    double xi_P = _settings.HouseholdPensionIncomeRate;
-                                    double u_bar = _settings.HouseholdExpectedUnemploymentRate;
+                        //        if(_age < _settings.HouseholdPensionAge) // If employed and in labor force
+                        //        {
+                        //            int aP = _settings.HouseholdPensionAge;
+                        //            double alphaP = r / (1 - Math.Pow(1.0 / (1 + r), _settings.HouseholdPensionTimeHorizon));
+                        //            double alpha = r / (1 - Math.Pow(1.0 / (1 + r), 1 + aP - _age));
+                        //            double xi_P = _settings.HouseholdPensionIncomeRate;
+                        //            double u_bar = _settings.HouseholdExpectedUnemploymentRate;
                                     
-                                    save_P = (xi_P * _w_exp - alphaP * Math.Pow(1 + r, 1 + aP - _age) * _wealth_P) 
-                                           / (xi_P + (1 - u_bar) * Math.Pow(1 + r, 1 + aP - _age) * alphaP / alpha);                                   
+                        //            save_P = (xi_P * _w_exp - alphaP * Math.Pow(1 + r, 1 + aP - _age) * _wealth_P) 
+                        //                   / (xi_P + (1 - u_bar) * Math.Pow(1 + r, 1 + aP - _age) * alphaP / alpha);                                   
                                     
-                                    _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P + save_P;
-                                    //if (_wealth_P < 0)
-                                    //{
-                                    //    save_P = -(1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P;
-                                    //    _wealth_P = 0;
-                                    //}
+                        //            _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P + save_P;
+                        //            //if (_wealth_P < 0)
+                        //            //{
+                        //            //    save_P = -(1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P;
+                        //            //    _wealth_P = 0;
+                        //            //}
 
-                                    double y_bar = _w_exp - save_P;
-                                    double eta_U = _settings.HouseholdUnemploymentAdjustmentSpeed;
-                                    save_U = eta_U * (n_U * y_bar - _wealth_U) - _statistics.PublicProfitPerWealthUnit * _wealth_U;
-                                    _wealth_U = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U + save_U;
-                                    if (_wealth_U < 0)
-                                    {
-                                        save_U = -(1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U;
-                                        _wealth_U = 0;
-                                    }
+                        //            double y_bar = _w_exp - save_P;
+                        //            double eta_U = _settings.HouseholdUnemploymentAdjustmentSpeed;
+                        //            save_U = eta_U * (n_U * y_bar - _wealth_U) - _statistics.PublicProfitPerWealthUnit * _wealth_U;
+                        //            _wealth_U = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U + save_U;
+                        //            if (_wealth_U < 0)
+                        //            {
+                        //                save_U = -(1 + _statistics.PublicProfitPerWealthUnit) * _wealth_U;
+                        //                _wealth_U = 0;
+                        //            }
 
-                                    _consumption_budget = _w * _productivity - save_U - save_P;
-                                    if (_consumption_budget < 0)
-                                        throw new Exception("_consumption_budget < 0");
+                        //            _consumption_budget = _w * _productivity - save_U - save_P;
+                        //            if (_consumption_budget < 0)
+                        //                throw new Exception("_consumption_budget < 0");
 
-                                }
-                                else  // If pension
-                                {
-                                    int aP = _settings.HouseholdPensionAge;
-                                    double alphaP = r / (1 - Math.Pow(1.0 / (1 + r), _settings.HouseholdPensionTimeHorizon));
+                        //        }
+                        //        else  // If pension
+                        //        {
+                        //            int aP = _settings.HouseholdPensionAge;
+                        //            double alphaP = r / (1 - Math.Pow(1.0 / (1 + r), _settings.HouseholdPensionTimeHorizon));
 
-                                    _consumption_budget = alphaP * _wealth_P;
-                                    _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P - _consumption_budget;
-
-
-                                }
+                        //            _consumption_budget = alphaP * _wealth_P;
+                        //            _wealth_P = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_P - _consumption_budget;
 
 
-                            }
+                        //        }
 
-                            if(_wealth_UI>0)
-                            {
-                                double c_UI = 0.2 * _wealth_UI;
-                                _consumption_budget += c_UI;
-                                _wealth_UI = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_UI - c_UI;
 
-                            }
+                        //    }
 
-                        }
+                        //    if(_wealth_UI>0)
+                        //    {
+                        //        double c_UI = 0.2 * _wealth_UI;
+                        //        _consumption_budget += c_UI;
+                        //        _wealth_UI = (1 + _statistics.PublicProfitPerWealthUnit) * _wealth_UI - c_UI;
+
+                        //    }
+
+                        //}
+                        #endregion
                     }
 
 
@@ -379,20 +391,20 @@ namespace Dream.Models.WinSOE
                         if (_random.NextEvent(_settings.HouseholdProbabilitySearchForShop))
                             SearchForShop(s);
 
+                    // Simplification: Hand-to-mouth
+                    if (_settings.SimplificationConsumption)
+                        _consumption_budget = _income;
+
                     MakeBudget();
-                    _bbudget = true;
                     break;
                     #endregion
 
                 case Event.Economics.Shopping:
                     #region Event.Economics.Shopping
-                    int tt = _time.Now;
-                    bool b = _bbudget;
 
                     if (_nShoppings == 0)
                         if (_consumption_budget > 0 & _budget[0] <= 0 & _time.Now>12*1) //???????????????????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             throw new Exception("_consumption_budget > 0 & _budget[0] <= 0");
-                            //_budget[0] = _consumption_budget;
 
                     BuyFromShops();
                     _yr_consumption += _consumption;  // Kill this
@@ -405,9 +417,11 @@ namespace Dream.Models.WinSOE
                         for (int s = 0; s < _settings.NumberOfSectors; s++)
                             _consumption_value += _vc[s];
 
-                        _wealth += _income - _consumption_value;  // No interest!! Interest in _income
-                        
-                        _wealth_UI += _consumption_budget - _consumption_value; //PSP  //Unintentional wealth
+                        //_wealth += _income - _consumption_value;  // No interest!! Interest in _income
+                        _wealth += _statistics.PublicProfitPerWealthUnit * _wealth + _income - _consumption_value;
+
+
+                        //_wealth_UI += _consumption_budget - _consumption_value; //PSP  //Unintentional wealth
 
                         //if (_time.Now > 12*40 & _wealth < 0)
                         //    MessageBox.Show("");
@@ -462,15 +476,10 @@ namespace Dream.Models.WinSOE
         void BuyFromShops()
         {
 
-            // Buy goods
-            //_consumption_value = 0;
             for (int s = 0; s < _settings.NumberOfSectors; s++)
             {
-                BuyFromShop(s);
-                //_consumption_value = _vc[s];
-                
+                BuyFromShop(s);               
             }
-
         }
 
         #endregion
@@ -507,7 +516,7 @@ namespace Dream.Models.WinSOE
             _ok++;
             double buy = _budget[sector] / nRemaining;            
             if (buy < 0)
-                throw new Exception("Can only buy positive number.");
+                throw new Exception("buy < 0");
 
             if (_firmShopArray[sector].Communicate(ECommunicate.CanIBuy, buy / _firmShopArray[sector].Price) == ECommunicate.Yes)
             {
@@ -517,18 +526,18 @@ namespace Dream.Models.WinSOE
                 _budget[sector] -= buy;
 
                 if (_budget[sector] < 0)
-                    throw new Exception("Negative budget");
-                
+                    throw new Exception("Negative budget");               
 
                 _statistics.Communicate(EStatistics.SuccesfullTrade, this);
-                if (_budget[sector]>0) 
-                    _statistics.Communicate(EStatistics.SuccesfullTradeNonZero, this);
+                if (_budget[sector]>0)
+                    _statistics.Communicate(EStatistics.SuccesfullTradeNonZero, this);                
+                
                 return;
             }
             else
             {
                 
-                double c = (double)_firmShopArray[sector].ReturnObject;
+                double c = (double)_firmShopArray[sector].ReturnObject; // How much the firm can sell
                 if(c>0) 
                 {
                     double vc = (double)_firmShopArray[sector].Price * c;
@@ -591,7 +600,6 @@ namespace Dream.Models.WinSOE
                         _firmShopArray[s] = _simulation.GetRandomFirmsFromHouseholdsGood(1, s)[0];
 
                 }
-
                 _P_CES += _s_CES[s] * Math.Pow(_firmShopArray[s].Price, 1 - _settings.HouseholdCES_Elasticity);
             }
             _P_CES = Math.Pow(_P_CES, 1 / (1 - _settings.HouseholdCES_Elasticity));
@@ -678,14 +686,6 @@ namespace Dream.Models.WinSOE
             if (_firmShopArray[sector] == null || min_price < _firmShopArray[sector].Price)
                 _firmShopArray[sector] = best_firm;
 
-
-            //var sfirms = firms.OrderBy(x => x.Price); // Order by price. Lowest price first
-
-                //if (_firmShopArray[sector] == null || sfirms.First().Price < _firmShopArray[sector].Price)
-                //{
-                //    _firmShopArray[sector] = sfirms.First();
-                //    _statistics.Communicate(EStatistics.ChangeShopInSearchForShop, this);
-                //}
         }
         #endregion
 
@@ -725,7 +725,7 @@ namespace Dream.Models.WinSOE
             if (_report & !_settings.SaveScenario)
             {
                 _statistics.StreamWriterHouseholdReport.WriteLineTab(_time.Now, this.ID, _productivity, _age, 
-                    _consumption, _consumption_value, _income, _wealth, _w, _statistics.PublicMarketPriceTotal, _consumption_budget, _permanent_income, _wealth_target);
+                    _consumption, _consumption_value, _income, _wealth, _w, _statistics.PublicMarketPriceTotal, _consumption_budget, _expected_income, _wealth_target);
                 
                 //_statistics.StreamWriterHouseholdReport.Flush();
             }

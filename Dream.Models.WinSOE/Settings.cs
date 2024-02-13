@@ -362,6 +362,11 @@ namespace Dream.Models.WinSOE
         [Tweakable(0, 1)]
         public double HouseholdMPCIncome { get; set; } = 0.75;
         /// <summary>
+        /// Marginal propensity to consume out of capital income
+        /// </summary>
+        [Tweakable(0, 1)]
+        public double HouseholdMPCCapitalIncome { get; set; } = 0.75;
+        /// <summary>
         /// Target ratio between wealth and montly permanent income
         /// </summary>
         [Tweakable(0, 24)]
@@ -523,6 +528,19 @@ namespace Dream.Models.WinSOE
         /// Delete old scenario folders
         /// </summary>
         public bool NewScenarioDirs { get; set; } = true;
+
+        
+        // Simplifications
+        /// <summary>
+        /// Hand-to-mouth consumption
+        /// </summary>
+        public bool SimplificationConsumption { get; set; } = true;
+
+        /// <summary>
+        /// Exogeneous interes rate
+        /// </summary>
+        public bool SimplificationInterestRate { get; set; } = true;
+
 
     }
 }

@@ -154,6 +154,7 @@ namespace Dream.Models.WinSOE
             settings.HouseholdNumberFirmsLookingForGoods = 15;
             settings.HouseholdMPCWealth = 0.01;   //0.25
             settings.HouseholdMPCIncome = 0.95;   //0.75
+            settings.HouseholdMPCCapitalIncome = 0.75;   //0.75
             settings.HouseholdTargetWealthIncomeRatio = 20;   // 6
             settings.HouseholdIncomeSmooth = 0.98;
 
@@ -165,7 +166,7 @@ namespace Dream.Models.WinSOE
             // Statistics
             settings.StatisticsInitialMarketPrice = 1.0;  //1.2
             settings.StatisticsInitialMarketWage = 1.0;   //0.2 
-            settings.StatisticsInitialInterestRate = Math.Pow(1 + 0.2, 1.0 / 12) - 1; // 5% p.a.
+            settings.StatisticsInitialInterestRate = Math.Pow(1 + 0.05, 1.0 / 12) - 1; // 5% p.a.
 
             settings.StatisticsFirmReportSampleSize = 0.05 * 5 / scale;//0.1
             settings.StatisticsHouseholdReportSampleSize = 0.0051 * 5 / scale;
@@ -217,10 +218,10 @@ namespace Dream.Models.WinSOE
             if (settings.SaveScenario)
                 settings.StatisticsGraphicsStartPeriod = 12 * 500;
 
-            if (!saveScenario)
-            {
-                settings.RandomSeed = 100;  
-            }
+            //if (!saveScenario)
+            //{
+            //    settings.RandomSeed = 100;  
+            //}
 
 
             settings.BurnInPeriod1 = 25 * 12;    // (2030 - 2014) * 12;  //35

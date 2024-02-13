@@ -258,6 +258,10 @@ namespace Dream.Models.WinSOE
                         if (totWealth > 0)
                             _profitPerWealthUnit = _simulation.Investor.TakeOut / totWealth;
 
+                        // Simplification: Exogeneous interes rate
+                        if(_settings.SimplificationInterestRate)
+                            _profitPerWealthUnit = _settings.StatisticsInitialInterestRate;
+
                         //-----------------------------------------------------------------------------------------------
                         // Endogenous interest rate!!!!!!!!!!!!!!!!!!!!!!!!!!
                         double smooth = 0.99;  //0.99
