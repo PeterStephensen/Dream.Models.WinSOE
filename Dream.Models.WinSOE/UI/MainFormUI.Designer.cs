@@ -1,6 +1,8 @@
-﻿namespace Dream.Models.WinSOE
+﻿
+#if WIN_APP
+namespace Dream.Models.WinSOE
 {
-    partial class MainFormUI
+        partial class MainFormUI
     {
         /// <summary>
         /// Required designer variable.
@@ -35,11 +37,13 @@
             toolStripStatusLabelYear = new ToolStripStatusLabel();
             menuStripMainForm = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             viewToolStripMenuItem = new ToolStripMenuItem();
             settingsToolStripMenuItem = new ToolStripMenuItem();
             runToolStripMenuItem = new ToolStripMenuItem();
             runModelF5ToolStripMenuItem = new ToolStripMenuItem();
             runChokF6ToolStripMenuItem = new ToolStripMenuItem();
+            runScenariosF7ToolStripMenuItem = new ToolStripMenuItem();
             toolsToolStripMenuItem = new ToolStripMenuItem();
             tweakToolStripMenuItem = new ToolStripMenuItem();
             windowToolStripMenuItem = new ToolStripMenuItem();
@@ -68,7 +72,11 @@
             labelMainText = new Label();
             pictureBoxDREAM = new PictureBox();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
-            runScenariosF7ToolStripMenuItem = new ToolStripMenuItem();
+            labelMainTextSub = new Label();
+            labelColText1 = new Label();
+            labelColText2 = new Label();
+            labelColText3 = new Label();
+            labelColText4 = new Label();
             statusStripMainForm.SuspendLayout();
             menuStripMainForm.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxDREAM).BeginInit();
@@ -78,9 +86,9 @@
             // 
             statusStripMainForm.BackColor = SystemColors.Control;
             statusStripMainForm.Items.AddRange(new ToolStripItem[] { toolStripStatusLabelMainForm, toolStripStatusLabelYear });
-            statusStripMainForm.Location = new Point(0, 591);
+            statusStripMainForm.Location = new Point(0, 608);
             statusStripMainForm.Name = "statusStripMainForm";
-            statusStripMainForm.Size = new Size(1099, 22);
+            statusStripMainForm.Size = new Size(1071, 22);
             statusStripMainForm.TabIndex = 0;
             statusStripMainForm.Text = "statusStrip1";
             // 
@@ -100,15 +108,23 @@
             menuStripMainForm.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, viewToolStripMenuItem, runToolStripMenuItem, toolsToolStripMenuItem, windowToolStripMenuItem });
             menuStripMainForm.Location = new Point(0, 0);
             menuStripMainForm.Name = "menuStripMainForm";
-            menuStripMainForm.Size = new Size(1099, 24);
+            menuStripMainForm.Size = new Size(1071, 24);
             menuStripMainForm.TabIndex = 1;
             menuStripMainForm.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "&File";
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(93, 22);
+            exitToolStripMenuItem.Text = "E&xit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // viewToolStripMenuItem
             // 
@@ -116,6 +132,7 @@
             viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             viewToolStripMenuItem.Size = new Size(44, 20);
             viewToolStripMenuItem.Text = "&View";
+            viewToolStripMenuItem.Click += viewToolStripMenuItem_Click;
             // 
             // settingsToolStripMenuItem
             // 
@@ -134,16 +151,22 @@
             // runModelF5ToolStripMenuItem
             // 
             runModelF5ToolStripMenuItem.Name = "runModelF5ToolStripMenuItem";
-            runModelF5ToolStripMenuItem.Size = new Size(180, 22);
+            runModelF5ToolStripMenuItem.Size = new Size(171, 22);
             runModelF5ToolStripMenuItem.Text = "&Run model (F5)";
             runModelF5ToolStripMenuItem.Click += runModelF5ToolStripMenuItem_Click;
             // 
             // runChokF6ToolStripMenuItem
             // 
             runChokF6ToolStripMenuItem.Name = "runChokF6ToolStripMenuItem";
-            runChokF6ToolStripMenuItem.Size = new Size(180, 22);
+            runChokF6ToolStripMenuItem.Size = new Size(171, 22);
             runChokF6ToolStripMenuItem.Text = "Run &Shock (F6)";
             runChokF6ToolStripMenuItem.Click += runChokF6ToolStripMenuItem_Click;
+            // 
+            // runScenariosF7ToolStripMenuItem
+            // 
+            runScenariosF7ToolStripMenuItem.Name = "runScenariosF7ToolStripMenuItem";
+            runScenariosF7ToolStripMenuItem.Size = new Size(171, 22);
+            runScenariosF7ToolStripMenuItem.Text = "Run Sc&enarios (F7)";
             // 
             // toolsToolStripMenuItem
             // 
@@ -296,7 +319,7 @@
             // 
             // formsPlot16
             // 
-            formsPlot16.Location = new Point(97, 407);
+            formsPlot16.Location = new Point(113, 423);
             formsPlot16.Margin = new Padding(5, 4, 5, 4);
             formsPlot16.Name = "formsPlot16";
             formsPlot16.Size = new Size(193, 121);
@@ -305,7 +328,7 @@
             // labelPeriods
             // 
             labelPeriods.AutoSize = true;
-            labelPeriods.Font = new Font("Segoe UI", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            labelPeriods.Font = new Font("Segoe UI", 20.25F);
             labelPeriods.Location = new Point(788, 526);
             labelPeriods.Name = "labelPeriods";
             labelPeriods.Size = new Size(162, 37);
@@ -326,18 +349,19 @@
             // labelBuffer
             // 
             labelBuffer.AutoSize = true;
-            labelBuffer.BackColor = Color.Red;
-            labelBuffer.ForeColor = SystemColors.ButtonHighlight;
+            labelBuffer.BackColor = Color.White;
+            labelBuffer.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelBuffer.ForeColor = SystemColors.ActiveCaptionText;
             labelBuffer.Location = new Point(807, 423);
             labelBuffer.Name = "labelBuffer";
-            labelBuffer.Size = new Size(292, 21);
+            labelBuffer.Size = new Size(264, 17);
             labelBuffer.TabIndex = 21;
             labelBuffer.Text = "Buffer problem! Set up charting interval. ";
             // 
             // labelMainText
             // 
             labelMainText.AutoSize = true;
-            labelMainText.Font = new Font("Segoe UI", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            labelMainText.Font = new Font("Segoe UI", 20.25F);
             labelMainText.Location = new Point(793, 376);
             labelMainText.Name = "labelMainText";
             labelMainText.Size = new Size(181, 37);
@@ -353,6 +377,7 @@
             pictureBoxDREAM.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBoxDREAM.TabIndex = 23;
             pictureBoxDREAM.TabStop = false;
+            pictureBoxDREAM.MouseDown += pictureBoxDREAM_MouseDown;
             // 
             // backgroundWorker2
             // 
@@ -362,11 +387,54 @@
             backgroundWorker2.ProgressChanged += backgroundWorker2_ProgressChanged;
             backgroundWorker2.RunWorkerCompleted += backgroundWorker2_RunWorkerCompleted;
             // 
-            // runScenariosF7ToolStripMenuItem
+            // labelMainTextSub
             // 
-            runScenariosF7ToolStripMenuItem.Name = "runScenariosF7ToolStripMenuItem";
-            runScenariosF7ToolStripMenuItem.Size = new Size(180, 22);
-            runScenariosF7ToolStripMenuItem.Text = "Run Sc&enarios (F7)";
+            labelMainTextSub.AutoSize = true;
+            labelMainTextSub.Location = new Point(800, 332);
+            labelMainTextSub.Name = "labelMainTextSub";
+            labelMainTextSub.Size = new Size(131, 21);
+            labelMainTextSub.TabIndex = 24;
+            labelMainTextSub.Text = "labelMainTextSub";
+            // 
+            // labelColText1
+            // 
+            labelColText1.AutoSize = true;
+            labelColText1.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelColText1.Location = new Point(816, 191);
+            labelColText1.Name = "labelColText1";
+            labelColText1.Size = new Size(114, 21);
+            labelColText1.TabIndex = 25;
+            labelColText1.Text = "labelColText1";
+            // 
+            // labelColText2
+            // 
+            labelColText2.AutoSize = true;
+            labelColText2.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelColText2.Location = new Point(817, 224);
+            labelColText2.Name = "labelColText2";
+            labelColText2.Size = new Size(114, 21);
+            labelColText2.TabIndex = 26;
+            labelColText2.Text = "labelColText2";
+            // 
+            // labelColText3
+            // 
+            labelColText3.AutoSize = true;
+            labelColText3.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelColText3.Location = new Point(817, 254);
+            labelColText3.Name = "labelColText3";
+            labelColText3.Size = new Size(114, 21);
+            labelColText3.TabIndex = 27;
+            labelColText3.Text = "labelColText3";
+            // 
+            // labelColText4
+            // 
+            labelColText4.AutoSize = true;
+            labelColText4.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelColText4.Location = new Point(817, 286);
+            labelColText4.Name = "labelColText4";
+            labelColText4.Size = new Size(114, 21);
+            labelColText4.TabIndex = 28;
+            labelColText4.Text = "labelColText4";
             // 
             // MainFormUI
             // 
@@ -374,7 +442,12 @@
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
             BackColor = Color.White;
-            ClientSize = new Size(1029, 630);
+            ClientSize = new Size(1029, 647);
+            Controls.Add(labelColText4);
+            Controls.Add(labelColText3);
+            Controls.Add(labelColText2);
+            Controls.Add(labelColText1);
+            Controls.Add(labelMainTextSub);
             Controls.Add(pictureBoxDREAM);
             Controls.Add(labelMainText);
             Controls.Add(labelBuffer);
@@ -398,12 +471,13 @@
             Controls.Add(formsPlot1);
             Controls.Add(statusStripMainForm);
             Controls.Add(menuStripMainForm);
-            Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            Font = new Font("Segoe UI", 12F);
             MainMenuStrip = menuStripMainForm;
             Margin = new Padding(4);
             Name = "MainFormUI";
-            Text = "Self-Organized Equilibrium. An Agent-Based Model, 2023 - v0.1";
+            Text = "Self-Organized Equilibrium. An Agent-Based Model, 2024 - v0.2";
             Load += MainFormUI_Load;
+            Paint += MainFormUI_Paint;
             KeyUp += MainFormUI_KeyUp;
             statusStripMainForm.ResumeLayout(false);
             statusStripMainForm.PerformLayout();
@@ -456,5 +530,12 @@
         private ToolStripMenuItem runChokF6ToolStripMenuItem;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private ToolStripMenuItem runScenariosF7ToolStripMenuItem;
+        private Label labelMainTextSub;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private Label labelColText1;
+        private Label labelColText2;
+        private Label labelColText3;
+        private Label labelColText4;
     }
 }
+#endif

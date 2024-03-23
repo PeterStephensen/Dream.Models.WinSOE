@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
 
+#if WIN_APP
 namespace Dream.Models.WinSOE
 {
     public partial class TweakForm : Form
@@ -214,6 +215,21 @@ namespace Dream.Models.WinSOE
 
         }
 
+        private void TweakForm_Load(object sender, EventArgs e)
+        {
+            this.BackColor = Color.White;
+            //this.BackColor = Color.LimeGreen;
+            //this.TransparencyKey = Color.LimeGreen;
+        }
+
+        private void TweakForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            Keys[] arrowKeys = { Keys.Up, Keys.Down, Keys.Left, Keys.Right };
+            
+            if(!arrowKeys.Contains(e.KeyCode))
+                MainFormUI.MainFormUIInstance.MainFormUI_KeyUp(sender, e);
+        }
+
         public Simulation Simulation
         {
             get { return _simulation; }
@@ -222,3 +238,4 @@ namespace Dream.Models.WinSOE
 
     }
 }
+#endif

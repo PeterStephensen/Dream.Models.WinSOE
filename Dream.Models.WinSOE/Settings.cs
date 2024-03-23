@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dream.Models.WinSOE
+﻿namespace Dream.Models.WinSOE
 {
-
-
-
     public class Settings
     {
+
+        #region Firms
         /// <summary>
         /// Used only at startup
         /// </summary>
@@ -61,7 +54,7 @@ namespace Dream.Models.WinSOE
         public double FirmFi { get; set; } = 1.0;
 
         [Tweakable(0, 1)]
-        public double FirmGamma_y { get; set; } = 0.8;
+        public double FirmExpectedSalesFraction { get; set; } = 0.8;
 
 
         /// <summary>
@@ -132,6 +125,21 @@ namespace Dream.Models.WinSOE
         public double FirmPriceMarkdownInZone { get; set; } = 0.001;
         [Tweakable(0, 10)]
         public double FirmPriceMarkdownSensitivityInZone { get; set; } = 1.0;
+
+
+        /// <summary>
+        /// Stickiness in price setting (default: 0.8)
+        /// </summary>
+        [Tweakable(0, 1)]
+        public double FirmPriceStickiness { get; set; } = 0.8;
+
+        /// <summary>
+        /// Stickiness in wage setting (default: 0.8)
+        /// </summary>
+        [Tweakable(0, 1)]
+        public double FirmWageStickiness { get; set; } = 0.8;
+
+
 
         /// <summary>
         /// Expected excess potential sales
@@ -257,42 +265,43 @@ namespace Dream.Models.WinSOE
         public double FirmStockDepreciation { get; set; } = 0;
 
         /// <summary>
-        /// The firms target stock-production-ratio
-        /// </summary>
-        [Tweakable(0, 1)]
-        public double FirmStockProductionRatio { get; set; } = 0.05;
+        ///// The firms target stock-production-ratio
+        ///// </summary>
+        //[Tweakable(0, 1)]
+        //public double FirmStockProductionRatio { get; set; } = 0.05;
+        #endregion
 
-
-
-        //-----------------------------------------------------------------------------------------
+        #region Households
         /// <summary>
         /// Number of firms contacted when searching for job
         /// </summary>
         [Tweakable(0, 100)]
         public int HouseholdNumberFirmsSearchJob { get; set; } = 10;
-
         /// <summary>
         /// Number of firms contacted when searching for job by new households
         /// </summary>
         public int HouseholdNumberFirmsSearchJobNew { get; set; } = 10;
-
-
         [Tweakable(0, 50)]
         public int HouseholdNumberFirmsSearchShop { get; set; } = 5;
         public int HouseholdMaxNumberShops { get; set; } = 5;
         public double HouseholdProbabilityQuitJob { get; set; } = 0;
         [Tweakable(0, 1)]
         public double HouseholdProbabilityOnTheJobSearch { get; set; } = 0;
+        /// <summary>
+        /// New wage markup over current wage when taking job (default: 0.05)
+        /// </summary>
+        [Tweakable(0, 0.5)]
+        public double HouseholdWageMarkupOnTheJobSearch { get; set; } = 0.0;
         [Tweakable(0, 1)]
         public double HouseholdProbabilitySearchForShop { get; set; } = 0.01;
         public int HouseholdPensionAge { get; set; } = 0;
         public int HouseholdStartAge { get; set; } = 0;
+        public int HouseholdMaxAge { get; set; } = 12*100;
         /// <summary>
         /// The number of new housholds each period
         /// </summary>
         [Tweakable(0, 100)]
         public int HouseholdNewBorn { get; set; } = 0;
-
         /// <summary>
         /// Mean in log-normal productivity distribution (initial population)
         /// </summary>
@@ -305,47 +314,38 @@ namespace Dream.Models.WinSOE
         /// Standard deviation in error term in dynamic productivity equation
         /// </summary>
         public double HouseholdProductivityErrorSigma { get; set; } = 0;
-
         /// <summary>
         /// Elasticity of subsstitution in housholds utility function
         /// </summary>
         public double HouseholdCES_Elasticity { get; set; } = 0;
-
         /// <summary>
         /// Share of income saved before pension age
         /// </summary>
         public double HouseholdSaveRate { get; set; } = 0;
-
         /// <summary>
         /// Share of wealth consumed when pensioned
         /// </summary>
         public double HouseholdDisSaveRatePensioner { get; set; } = 0;
-
         /// <summary>
         /// Share of wealth consumed when unemployed
         /// </summary>
         public double HouseholdDisSaveRateUnemployed { get; set; } = 0;
-
         /// <summary>
         /// Number of times the household consumes in a period
         /// </summary>
         public int HouseholdNumberShoppingsPerPeriod { get; set; } = 1;
-
         /// <summary>
         /// Probability that the household react on a job advertisement
         /// </summary>
         public double HouseholdProbabilityReactOnAdvertisingJob { get; set; } = 1.0;
-
         /// <summary>
         /// Probability that the household react on a good advertisement
         /// </summary>
         public double HouseholdProbabilityReactOnAdvertisingGood { get; set; } = 1.0;
-
         /// <summary>
         /// Number of firms the household visits when searching for goods. Only happens when the household cannot buy from the current supplier
         /// </summary>
         public int HouseholdNumberFirmsLookingForGoods { get; set; } = 10;
-
         /// <summary>
         /// Smoothing parameter in calculating permanent income
         /// </summary>
@@ -371,77 +371,91 @@ namespace Dream.Models.WinSOE
         /// </summary>
         [Tweakable(0, 24)]
         public double HouseholdTargetWealthIncomeRatio { get; set; } = 6.0;
+        public int NumberOfInheritors { get; set; } = 1;
+        public double HouseholdProbabilityRecalculatePension { get; set; } = 0.5 / 12;
+        public int HouseholdPensionTimeHorizon { get; set; } = 10 * 12;
+        public double HouseholdPensionIncomeRate { get; set; } = 0.5;
+        public double HouseholdExpectedUnemploymentRate { get; set; } = 0.05;
+        public int HouseholdUnemployedTimeHorizon { get; set; } = 3;
+        public double HouseholdUnemploymentAdjustmentSpeed { get; set; } = 0.05;
         /// <summary>
-        /// Share of ProfitPerHousehold received by the household. For testing. Should be 1! 
+        /// Relative reduction in reservation wage each period when household is unemployed (default: 0.9)
+        /// </summary>
+        public double HouseholdReservationWageReduction { get; set; } = 0.9;
+        /// <summary>
+        /// Unemployeds consumption rate compared to employed (default: 0.7)
+        /// </summary>
+        public double HouseholdUnemployedConsumptionRate { get; set; } = 0.7;
+        /// <summary>
+        /// Pensioners consumption rate first pension year when compared to expected consumption last period as employed (default: 0.9)
+        /// </summary>
+        public double HouseholdPensionerConsumptionRate { get; set; } = 0.9;
+        /// <summary>
+        /// Economic theory of the household (default: BufferStock)
+        /// </summary>
+        public EHouseholdTheory HouseholdTheory { get; set; } = EHouseholdTheory.BufferStock;
+        /// <summary>
+        /// Probability that the budget is recalculated in a given period (default = 1.0) 
         /// </summary>
         [Tweakable(0, 1)]
-        public double HouseholdProfitShare { get; set; } = 1.0;
+        public double HouseholdProbabilityRecalculateBudget { get; set; } = 1.0;
+        /// <summary>
+        /// Minimum consumption value as a share of expected income (default: 0.5)
+        /// </summary>
+        [Tweakable(0, 1)]
+        public double HouseholdMinimumConsumptionShare { get; set; } = 0.5;
+        #endregion
 
+        #region Public sector
+        public double PublicSectorCorporateTaxRate { get; set; } = 0.0;
+        #endregion
 
-        public int NumberOfInheritors { get; set; } = 1;
-
-        public double HouseholdProbabilityRecalculatePension { get; set; } = 0.5 / 12;
-
-        public int HouseholdPensionTimeHorizon { get; set; } = 10 * 12;
-
-        public double HouseholdPensionIncomeRate { get; set; } = 0.5;
-
-
-        public double HouseholdExpectedUnemploymentRate { get; set; } = 0.05;
-
-        public int HouseholdUnemployedTimeHorizon { get; set; } = 3;
-
-        public double HouseholdUnemploymentAdjustmentSpeed { get; set; } = 0.05;
-
-
+        #region Investor
         //-----------------------------------------------------------------------------------------
         /// <summary>
         /// Initial size of investor firm portefolio
         /// </summary>
         public int InvestorInitialInflow { get; set; } = 0;
-        // Warning: Over written in SimulationRunner 
-
-        [Tweakable(0,1)]
-        public double InvestorProfitSensitivity { get; set; } = 0.05;  //0.025
-
+        [Tweakable(0,0.2)]
+        public double InvestorProfitSensitivity { get; set; } = 0.015;  //0.025
+        public double InvestorProfitSensitivityBurnIn { get; set; } = 0.05;  //0 Vigtig for stabilitet!!!!
         /// <summary>
         /// Smoothing parameter in calculation of permanent profit income
         /// </summary>
         [Tweakable(0.5, 1)]
         public double InvestorSmoothIncome { get; set; } = 0.99;
-
         /// <summary>
         /// Investors target for wealth-income-ratio in buffer-stock-behavior
         /// </summary>
         [Tweakable(0, 20)]
-        public double InvestorWealthIncomeRatioTarget { get; set; } = 0.2;
-
+        public double InvestorWealthIncomeRatioTarget { get; set; } = 0.00;  //0.2
         /// <summary>
         /// Investors marginal propensity to consume out of transitory income
         /// </summary>
         [Tweakable(0, 1)]
-        public double InvestorMPCIncome { get; set; } = 0.25; // 0
-
+        public double InvestorMPCIncome { get; set; } = 1.0; // 0.85
         /// <summary>
         /// Investors marginal propensity to consume out of wealth
         /// </summary>
         [Tweakable(0, 1)]
-        public double InvestorMPCWealth { get; set; } = 0.75; //0.95
-
-        
+        public double InvestorMPCWealth { get; set; } = 0.0; //0.05
         /// <summary>
-        /// Number of periods used to build up buffer-stock wealth. No take out 
+        /// Number of periods used to build up buffer-stock wealth. No take out (default 0) 
         /// </summary>
         [Tweakable(0, 100)]
-        public int InvestorBuildUpPeriods { get; set; } = 0*12;
-
+        public int InvestorBuildUpPeriods { get; set; } = 0;
         /// <summary>
         /// Share of permanent income taken out for consumption
         /// </summary>
         [Tweakable(0, 1)]
         public double InvestorShareOfPermanentIncome { get; set; } = 1.0;
+        /// <summary>
+        /// Investors initial wealth (default: 0)
+        /// </summary>
+        public double InvestorInitialWealth { get; set; } = 0;
+        #endregion
 
-
+        #region Statistics
         //-----------------------------------------------------------------------------------------
 
         public double StatisticsInitialMarketPrice { get; set; } = 1.0;    
@@ -468,7 +482,6 @@ namespace Dream.Models.WinSOE
 
         public int StatisticsGraphicsStartPeriod { get; set; } = 0;
 
-        public int StatisticsChartUpdateInterval { get; set; } = 12;
 
         public int StatisticsOutputPeriode { get; set; } = -1;
 
@@ -478,15 +491,29 @@ namespace Dream.Models.WinSOE
         /// In this periode all agents are written to a data base
         /// </summary>
         public int StatisticsWritePeriode { get; set; } = -1;
+        #endregion
 
+        #region UIChart
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Charts are updated every x periods (default: 12)
+        /// </summary>
 
+        public int UIChartUpdateInterval { get; set; } = 12;
+        /// <summary>
+        /// Charts show the last x periods (default: 15*12)
+        /// </summary>
+        public int UIChartTimeWindow { get; set; } = 15 * 12;
+        #endregion
+
+        #region Misc
         //-----------------------------------------------------------------------------------------
         /// <summary>
         /// Seed for the random generator. Should be positive.
         /// </summary>
         public int RandomSeed { get; set; } = -1;
 
-        public EShock Shock = EShock.Nothing;
+        public EShock Shock = EShock.Base;
         public int PeriodsPerYear { get; set; } = 1;
         /// <summary>
         /// Macro data is recorded and put in the scenario-folder with a scnario-id
@@ -510,6 +537,16 @@ namespace Dream.Models.WinSOE
         /// </summary>
         public int BurnInPeriod3 { get; set; } = -1;
 
+        /// <summary>
+        /// Macro productivity (default: 1.0)
+        /// </summary>
+        [Tweakable(0.8, 1.2)]
+        public double MacroProductivity { get; set; } = 1.0;
+
+        /// <summary>
+        /// Size of the relative shock (default: 0.1)
+        /// </summary>
+        public double ShockSize { get; set; } = 0.1;
 
         public double Scale { get; set; } = 1;
         public bool LoadDatabase { get; set; } = false;
@@ -540,7 +577,7 @@ namespace Dream.Models.WinSOE
         /// Exogeneous interes rate
         /// </summary>
         public bool SimplificationInterestRate { get; set; } = true;
-
+        #endregion
 
     }
 }

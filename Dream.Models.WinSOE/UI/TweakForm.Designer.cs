@@ -1,4 +1,5 @@
-﻿namespace Dream.Models.WinSOE
+﻿#if WIN_APP
+namespace Dream.Models.WinSOE
 {
     partial class TweakForm
     {
@@ -60,7 +61,7 @@
             // 
             // buttonTweakClose
             // 
-            buttonTweakClose.Location = new Point(36, 415);
+            buttonTweakClose.Location = new Point(36, 327);
             buttonTweakClose.Name = "buttonTweakClose";
             buttonTweakClose.Size = new Size(75, 23);
             buttonTweakClose.TabIndex = 0;
@@ -70,7 +71,7 @@
             // 
             // trackBarTweak1
             // 
-            trackBarTweak1.Location = new Point(55, 90);
+            trackBarTweak1.Location = new Point(55, 43);
             trackBarTweak1.Name = "trackBarTweak1";
             trackBarTweak1.Size = new Size(397, 45);
             trackBarTweak1.TabIndex = 1;
@@ -78,7 +79,7 @@
             // 
             // trackBarTweak2
             // 
-            trackBarTweak2.Location = new Point(55, 170);
+            trackBarTweak2.Location = new Point(55, 112);
             trackBarTweak2.Name = "trackBarTweak2";
             trackBarTweak2.Size = new Size(397, 45);
             trackBarTweak2.TabIndex = 1;
@@ -86,7 +87,7 @@
             // 
             // trackBarTweak3
             // 
-            trackBarTweak3.Location = new Point(55, 250);
+            trackBarTweak3.Location = new Point(55, 192);
             trackBarTweak3.Name = "trackBarTweak3";
             trackBarTweak3.Size = new Size(397, 45);
             trackBarTweak3.TabIndex = 1;
@@ -94,7 +95,7 @@
             // 
             // trackBarTweak4
             // 
-            trackBarTweak4.Location = new Point(55, 330);
+            trackBarTweak4.Location = new Point(55, 272);
             trackBarTweak4.Name = "trackBarTweak4";
             trackBarTweak4.Size = new Size(397, 45);
             trackBarTweak4.TabIndex = 1;
@@ -103,7 +104,7 @@
             // labelMin2
             // 
             labelMin2.AutoSize = true;
-            labelMin2.Location = new Point(36, 170);
+            labelMin2.Location = new Point(36, 112);
             labelMin2.Name = "labelMin2";
             labelMin2.Size = new Size(13, 15);
             labelMin2.TabIndex = 2;
@@ -112,7 +113,7 @@
             // labelMin1
             // 
             labelMin1.AutoSize = true;
-            labelMin1.Location = new Point(36, 94);
+            labelMin1.Location = new Point(36, 47);
             labelMin1.Name = "labelMin1";
             labelMin1.Size = new Size(13, 15);
             labelMin1.TabIndex = 2;
@@ -121,7 +122,7 @@
             // labelMin3
             // 
             labelMin3.AutoSize = true;
-            labelMin3.Location = new Point(36, 250);
+            labelMin3.Location = new Point(36, 192);
             labelMin3.Name = "labelMin3";
             labelMin3.Size = new Size(13, 15);
             labelMin3.TabIndex = 2;
@@ -130,7 +131,7 @@
             // labelMin4
             // 
             labelMin4.AutoSize = true;
-            labelMin4.Location = new Point(36, 330);
+            labelMin4.Location = new Point(36, 272);
             labelMin4.Name = "labelMin4";
             labelMin4.Size = new Size(13, 15);
             labelMin4.TabIndex = 2;
@@ -139,7 +140,7 @@
             // labelMax2
             // 
             labelMax2.AutoSize = true;
-            labelMax2.Location = new Point(458, 170);
+            labelMax2.Location = new Point(458, 112);
             labelMax2.Name = "labelMax2";
             labelMax2.Size = new Size(13, 15);
             labelMax2.TabIndex = 2;
@@ -148,7 +149,7 @@
             // labelMax1
             // 
             labelMax1.AutoSize = true;
-            labelMax1.Location = new Point(461, 94);
+            labelMax1.Location = new Point(461, 47);
             labelMax1.Name = "labelMax1";
             labelMax1.Size = new Size(13, 15);
             labelMax1.TabIndex = 2;
@@ -157,7 +158,7 @@
             // labelMax3
             // 
             labelMax3.AutoSize = true;
-            labelMax3.Location = new Point(458, 250);
+            labelMax3.Location = new Point(458, 192);
             labelMax3.Name = "labelMax3";
             labelMax3.Size = new Size(13, 15);
             labelMax3.TabIndex = 2;
@@ -166,7 +167,7 @@
             // labelMax4
             // 
             labelMax4.AutoSize = true;
-            labelMax4.Location = new Point(458, 330);
+            labelMax4.Location = new Point(458, 272);
             labelMax4.Name = "labelMax4";
             labelMax4.Size = new Size(13, 15);
             labelMax4.TabIndex = 2;
@@ -175,7 +176,7 @@
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(594, 93);
+            comboBox1.Location = new Point(594, 46);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(279, 23);
             comboBox1.TabIndex = 3;
@@ -184,7 +185,7 @@
             // comboBox2
             // 
             comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(594, 167);
+            comboBox2.Location = new Point(594, 109);
             comboBox2.Name = "comboBox2";
             comboBox2.Size = new Size(279, 23);
             comboBox2.TabIndex = 3;
@@ -193,7 +194,7 @@
             // comboBox3
             // 
             comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(594, 242);
+            comboBox3.Location = new Point(594, 184);
             comboBox3.Name = "comboBox3";
             comboBox3.Size = new Size(279, 23);
             comboBox3.TabIndex = 3;
@@ -202,7 +203,7 @@
             // comboBox4
             // 
             comboBox4.FormattingEnabled = true;
-            comboBox4.Location = new Point(594, 322);
+            comboBox4.Location = new Point(594, 264);
             comboBox4.Name = "comboBox4";
             comboBox4.Size = new Size(279, 23);
             comboBox4.TabIndex = 3;
@@ -211,7 +212,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(30, 59);
+            label1.Location = new Point(30, 12);
             label1.Name = "label1";
             label1.Size = new Size(28, 15);
             label1.TabIndex = 4;
@@ -220,7 +221,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(452, 59);
+            label4.Location = new Point(452, 12);
             label4.Name = "label4";
             label4.Size = new Size(30, 15);
             label4.TabIndex = 4;
@@ -229,7 +230,7 @@
             // labelValue2
             // 
             labelValue2.AutoSize = true;
-            labelValue2.Location = new Point(527, 170);
+            labelValue2.Location = new Point(527, 112);
             labelValue2.Name = "labelValue2";
             labelValue2.Size = new Size(13, 15);
             labelValue2.TabIndex = 2;
@@ -238,7 +239,7 @@
             // labelValue1
             // 
             labelValue1.AutoSize = true;
-            labelValue1.Location = new Point(530, 94);
+            labelValue1.Location = new Point(530, 47);
             labelValue1.Name = "labelValue1";
             labelValue1.Size = new Size(13, 15);
             labelValue1.TabIndex = 2;
@@ -247,7 +248,7 @@
             // labelValue3
             // 
             labelValue3.AutoSize = true;
-            labelValue3.Location = new Point(527, 250);
+            labelValue3.Location = new Point(527, 192);
             labelValue3.Name = "labelValue3";
             labelValue3.Size = new Size(13, 15);
             labelValue3.TabIndex = 2;
@@ -256,7 +257,7 @@
             // labelValue4
             // 
             labelValue4.AutoSize = true;
-            labelValue4.Location = new Point(527, 330);
+            labelValue4.Location = new Point(527, 272);
             labelValue4.Name = "labelValue4";
             labelValue4.Size = new Size(13, 15);
             labelValue4.TabIndex = 2;
@@ -265,7 +266,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(521, 59);
+            label9.Location = new Point(521, 12);
             label9.Name = "label9";
             label9.Size = new Size(35, 15);
             label9.TabIndex = 4;
@@ -275,7 +276,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(948, 475);
+            ClientSize = new Size(948, 104);
             Controls.Add(label9);
             Controls.Add(label4);
             Controls.Add(label1);
@@ -300,10 +301,13 @@
             Controls.Add(trackBarTweak2);
             Controls.Add(trackBarTweak1);
             Controls.Add(buttonTweakClose);
+            Location = new Point(200, 25);
             Name = "TweakForm";
             Text = "Tweak Parameters";
             TopMost = true;
+            Load += TweakForm_Load;
             KeyDown += TweakForm_KeyDown;
+            KeyUp += TweakForm_KeyUp;
             ((System.ComponentModel.ISupportInitialize)trackBarTweak1).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackBarTweak2).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackBarTweak3).EndInit();
@@ -342,3 +346,4 @@
         private Label label9;
     }
 }
+#endif

@@ -1,36 +1,33 @@
-﻿using Dream.Models.WinSOE;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Dream.Models.WinSOE.UI;
 
 namespace Dream.Models.WinSOE
 {
-    
+
+    #region Class WinFormElements
     /// <summary>
     /// Class used to communicate with backgroundworker
     /// </summary>
     public class WinFormElements
     {
+#if WIN_APP
         public MainFormUI MainFormUI { get; set; }
         public DoWorkEventArgs DoWorkEventArgs { get; set; }
         public ArgsToWorker? ArgsToWorkerScenario  { get; set; }
 
-    public WinFormElements(MainFormUI mainFormUI, DoWorkEventArgs doWorkEventArgs) 
+        public WinFormElements(MainFormUI mainFormUI, DoWorkEventArgs doWorkEventArgs) 
         { 
             MainFormUI = mainFormUI;
             DoWorkEventArgs = doWorkEventArgs;
         }
-
+#endif
     }
-    
+    #endregion
+
     public class SimulationRunner
     {
         public SimulationRunner(bool saveScenario = false, WinFormElements? winFormElements = null,
-                                EShock shock = EShock.Nothing, int seed = -1, ArgsToWorker? atw=null)
+                                EShock shock = EShock.Base, int seed = -1, ArgsToWorker? atw=null)
         {
            
             Settings settings = new();
@@ -40,9 +37,12 @@ namespace Dream.Models.WinSOE
             {
                 settings.Shock = shock;
                 settings.RandomSeed = seed;
-                
-                if(winFormElements != null) 
+
+#if WIN_APP
+
+                if (winFormElements != null) 
                     winFormElements.ArgsToWorkerScenario = atw;
+#endif
             }
 
             // Scale
@@ -66,13 +66,13 @@ namespace Dream.Models.WinSOE
             settings.FirmFi = 2;   //2
 
             //-----
-            double mark = 0.05; // 0.2
-            double sens = 1 / 0.75;   //1/0.1
+            double mark = 0.05; // 0.15
+            double sens = 1 / 0.75;   //0.25 * 1 / 0.75
 
             // Wage ----------------------------------
             settings.FirmWageMarkup = 1 * mark; //1                                              
             settings.FirmWageMarkupSensitivity = 2 * sens;//10
-            settings.FirmWageMarkdown = 1 * mark;   //1          
+            settings.FirmWageMarkdown = 0.5 * mark;   //1            Overvej 0: Kører renten mod 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             settings.FirmWageMarkdownSensitivity = 2 * sens;//10
 
             // In zone
@@ -81,8 +81,8 @@ namespace Dream.Models.WinSOE
             settings.FirmWageMarkdownInZone = 0 * mark; //1    
             settings.FirmWageMarkdownSensitivityInZone = 1 * sens;//1
 
-            settings.FirmProbabilityRecalculateWage = 1.0;
-            settings.FirmProbabilityRecalculateWageInZone = 2.0/12; //0.5
+            settings.FirmProbabilityRecalculateWage = 1.0;   //1.0
+            settings.FirmProbabilityRecalculateWageInZone = 2.0 / 12; //
 
             // Price ----------------------------------
             settings.FirmPriceMarkup = 1 * mark; //1
@@ -104,10 +104,9 @@ namespace Dream.Models.WinSOE
             settings.FirmProbabilityRecalculatePriceInZone = 2.0/12; // 0.5
 
             settings.FirmExpectedExcessPotentialSales = 1.0; // 
-            settings.FirmGamma_y = 0.8; //1.0   !!!!!!!!!!!!!!!!!!!!!!!!!
+            settings.FirmExpectedSalesFraction = 0.8;                            //1.0   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             settings.FirmPriceMechanismStart = 12 * 1;
-
 
             //-----
             settings.FirmDefaultProbabilityNegativeProfit = 0.5;
@@ -117,10 +116,10 @@ namespace Dream.Models.WinSOE
             settings.FirmExpectationSmooth = 0.95; //0.4  
             settings.FirmMaxEmployment = 100000;  // 1000            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            settings.FirmEmploymentMarkup = 1.5;
+            settings.FirmEmploymentMarkup = 1.25;   // 1.5
 
             settings.FirmNumberOfGoodAdvertisements = 100; // 25 
-            settings.FirmNumberOfJobAdvertisements = 25;
+            settings.FirmNumberOfJobAdvertisements = 15;   // 15!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             settings.FirmVacanciesShare = 1.0;
             settings.FirmMinRemainingVacancies = 5;
@@ -132,11 +131,12 @@ namespace Dream.Models.WinSOE
             settings.FirmStockDepreciation = 0.25;
 
             // Households
-            settings.HouseholdNumberFirmsSearchJob = 15;  //15              
-            settings.HouseholdNumberFirmsSearchJobNew = 15;  //15              
+            settings.HouseholdReservationWageReduction = 0.98;  // 0.9 !!!!!!!!!!!!!!!!!!!!!!
+            settings.HouseholdNumberFirmsSearchJob = 4;  //15              
+            settings.HouseholdNumberFirmsSearchJobNew = 4;  //15              
             settings.HouseholdNumberFirmsSearchShop = 15;       //15
-            settings.HouseholdProbabilityQuitJob = 0.02;        // 0.01
-            settings.HouseholdProbabilityOnTheJobSearch = 0.05;   //0.25                        
+            settings.HouseholdProbabilityQuitJob = 0.05;        // 0.02   // Defines unemplyment rate !!!!!!!!!!!!!!!!!
+            settings.HouseholdProbabilityOnTheJobSearch = 0.01;   //0.05                        
             settings.HouseholdProbabilitySearchForShop = 0.15;     //0.25                    
             settings.HouseholdProductivityLogSigmaInitial = 0.6;
             settings.HouseholdProductivityLogMeanInitial = -0.5 * Math.Pow(settings.HouseholdProductivityLogSigmaInitial, 2); // Sikrer at forventet produktivitet er 1
@@ -145,35 +145,40 @@ namespace Dream.Models.WinSOE
             settings.HouseholdDisSaveRatePensioner = 0.01;
             settings.HouseholdDisSaveRateUnemployed = 0.05;
             settings.HouseholdSaveRate = 0.01;
-            settings.NumberOfInheritors = 15;       
+            settings.NumberOfInheritors = 2;   // 5       
             settings.HouseholdMaxNumberShops = 15; // 5 When your supplier can not deliver: how many to seach for
-            settings.HouseholdProbabilityReactOnAdvertisingJob = 0.25; //1
+            settings.HouseholdProbabilityReactOnAdvertisingJob = 0.25; //0.25   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             settings.HouseholdProbabilityReactOnAdvertisingGood = 0.05; //1
             settings.HouseholdPensionAge = 67 * 12;
             settings.HouseholdStartAge = 18 * 12;
             settings.HouseholdNumberFirmsLookingForGoods = 15;
-            settings.HouseholdMPCWealth = 0.01;   //0.25
+            
+            //settings.HouseholdProbabilityRecalculateBudget=0.1;
+
+            settings.HouseholdMPCWealth = 0.005;   //0.25
             settings.HouseholdMPCIncome = 0.95;   //0.75
-            settings.HouseholdMPCCapitalIncome = 0.75;   //0.75
-            settings.HouseholdTargetWealthIncomeRatio = 20;   // 6
-            settings.HouseholdIncomeSmooth = 0.98;
+            settings.HouseholdMPCCapitalIncome = 0.1;   //0.75
 
-            settings.HouseholdProfitShare = 1; // Should be 1 !!!!!!!!!!!!!!!!!!
+            //settings.HouseholdMPCWealth = 0.0;
+            //settings.HouseholdMPCIncome = 1.0;
+            //settings.HouseholdMPCCapitalIncome = 1.0;
+            settings.SimplificationConsumption = false;
+            settings.SimplificationInterestRate = false;
 
-            // Investor
-            // Look in settings
+            settings.HouseholdTargetWealthIncomeRatio = 30;   // 20
+            settings.HouseholdIncomeSmooth = 0.95;  //0.98
 
             // Statistics
             settings.StatisticsInitialMarketPrice = 1.0;  //1.2
             settings.StatisticsInitialMarketWage = 1.0;   //0.2 
-            settings.StatisticsInitialInterestRate = Math.Pow(1 + 0.05, 1.0 / 12) - 1; // 5% p.a.
+            //settings.StatisticsInitialInterestRate = Math.Pow(1 + 0.04, 1.0 / 12) - 1; // 3% p.a.
+            settings.StatisticsInitialInterestRate = Math.Pow(1 + 0.1, 1.0 / 12) - 1; // 3% p.a.
 
             settings.StatisticsFirmReportSampleSize = 0.05 * 5 / scale;//0.1
             settings.StatisticsHouseholdReportSampleSize = 0.0051 * 5 / scale;
 
-            settings.StatisticsExpectedSharpeRatioSmooth = 0.7;
+            settings.StatisticsExpectedSharpeRatioSmooth = 0.95; //0.7   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-            // R-stuff
             if (Environment.MachineName == "C1709161") // PSP's gamle maskine
             {
                 settings.ROutputDir = @"C:\test\Dream.AgentBased.MacroModel";
@@ -199,44 +204,47 @@ namespace Dream.Models.WinSOE
                 settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.3\bin\x64\R.exe";
             }
 
-            // Time and randomseed           
+            // Time and random seed           
             settings.StartYear = 0; 
-            settings.EndYear = 300;            // 300  
+            settings.EndYear = 1300;  //300         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
             settings.PeriodsPerYear = 12;
-
-            settings.ShockPeriod = 200 * 12;   // 200
-            
-            //settings.Shock = EShock.Productivity;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            settings.ShockPeriod = 200 * 12;
 
             settings.StatisticsOutputPeriode = 60 * 12;   
             settings.StatisticsGraphicsPlotInterval = 1;
 
-            settings.StatisticsChartUpdateInterval = 2 * 12;
-
-            settings.StatisticsGraphicsStartPeriod = 65 * 12 * 100;     //!!!!!!!!!!!!!!!!!!!!!!!
+            settings.StatisticsGraphicsStartPeriod = 65 * 12 * 100;     
             if (settings.SaveScenario)
                 settings.StatisticsGraphicsStartPeriod = 12 * 500;
 
+            settings.UIChartUpdateInterval = 1 * 12;  //5 * 12 
+            settings.UIChartTimeWindow = 50 * 12;
+
+            if(!settings.SaveScenario)
+            {
+                //settings.Shock = EShock.Productivity;
+                //settings.Shock = EShock.Tsunami;
+                settings.ShockSize = 0.2;
+                settings.ShockPeriod = 1400 * 12;
+            }
+
+            //settings.HouseholdTheory = EHouseholdTheory.BehavioralSavings;
+            //settings.HouseholdTheory = EHouseholdTheory.FixedSavingsRate;
+            settings.HouseholdTheory = EHouseholdTheory.BufferStock;              //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             //if (!saveScenario)
-            //{
-            //    settings.RandomSeed = 100;  
-            //}
+            //    settings.RandomSeed = 100;
 
+            settings.BurnInPeriod1 = 25 * 12;    
+            settings.BurnInPeriod2 = 40 * 12;    
+            settings.BurnInPeriod3 = 100 * 12;  // 100    
+            settings.StatisticsWritePeriode = 60000 * 12;
 
-            settings.BurnInPeriod1 = 25 * 12;    // (2030 - 2014) * 12;  //35
-            settings.BurnInPeriod2 = 40 * 12;    // (2035 - 2014) * 12;  //50
-            settings.BurnInPeriod3 = 100 * 12;    //(2035 - 2014) * 12;  //50
-            settings.StatisticsWritePeriode = 60000 * 12;     //(2075 - 2014) * 12;
+            settings.InvestorBuildUpPeriods = settings.BurnInPeriod3;
 
             // !!!!! Remember some settings are changed in Simulation after BurnIn1 !!!!!
-            
-            //settings.BurnInPeriod1 = 1;
-            ////settings.BurnInPeriod2 = 112 * 5;
-            //settings.FirmProfitLimitZeroPeriod = 1;
-            //settings.FirmDefaultStart = 1;
-            //settings.LoadDatabase = true;
 
+            #region RandomParameters
             settings.RandomParameters = false;
             //if (settings.RandomParameters)
             //{
@@ -291,20 +299,20 @@ namespace Dream.Models.WinSOE
             //}
 
             //settings.Shock = EShock.LaborSupply;
+            #endregion
+
+#if !WIN_APP
+            settings.EndYear = 300;
+            settings.ShockPeriod = 200 * 12;
+            settings.Shock = shock;
+#endif
 
 
             settings.NewScenarioDirs = true;
-            var t0 = DateTime.Now;
             Time time = new Time(0, (1 + settings.EndYear - settings.StartYear) * settings.PeriodsPerYear - 1);
 
             // Run the simulation
             new Simulation(settings, time, winFormElements);
-            //new Simulation(settings, time, winFormElements, baseRun);
-
-            Console.Write("\n");
-            Console.WriteLine(DateTime.Now - t0);
-
-
 
         }
 

@@ -1,4 +1,5 @@
-﻿namespace Dream.Models.WinSOE.UI
+﻿#if WIN_APP
+namespace Dream.Models.WinSOE.UI
 {
     partial class ScenariosForm
     {
@@ -228,3 +229,4 @@
         public CheckBox checkBoxScenariosUseBaseRuns;
     }
 }
+#endif

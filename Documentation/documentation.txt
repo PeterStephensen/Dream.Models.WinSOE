@@ -1,0 +1,230 @@
+---------------------------------------------------------------------------------
+DOCUMENTATION
+---------------------------------------------------------------------------------
+WaGP betyder 'With a Given Probability'
+
+---------------------------------------------------------------------------------
+Firms
+---------------------------------------------------------------------------------
+Constructor:
+	Produktivitet trækkes fra Pareto-fordeling
+
+----------
+Event.System.PeriodStart:	
+
+	_l_primo = CalcEmployment(); // Primo employment
+	_s_primo = _sales;
+
+	Expectations();
+	Produce();
+	Management();
+	Marketing();
+	HumanResource();
+
+	Initializations..
+	
+Event.Economics.Update:	
+	WaGP: Default if negativ profit (and age > FirmStartupPeriod)	
+	WaGP: Default for no reason (prob=0)
+	
+Event.System.PeriodEnd:
+	Calculate profit
+	age++
+---------- 
+
+Expectations()
+	Exponensial smoothing
+	
+Produce()
+	Calculate _y_primo
+	Calculate _stock
+	
+Management()
+	Calculate _l_optimal
+	Calculate _y_optimal
+	Calculate _profit_optimal
+
+
+Marketing()
+	WaGP: Priser genberegnes på følgende måde:
+		if(_expPotentialSales < _y_optimal * FirmExpectedSalesFraction):
+			Sæt p_target lavere end marketPrice (if age < 5 years: advertise)
+		else
+			Sæt p_target højere end marketPrice
+		Gradvis tilpasning: _p = a * _p + (1 - a) * p_target
+		Ide: Oplagt at a vælges ved social proces (udveksling af erfaringer) 
+		Bemærk FirmExpectedSalesFraction < 1. Virksomheden vælger bevist _y_optimal > _expPotentialSales således 
+		at _stock opbygges når efterspørgslen svinger
+
+HumanResource()
+	If(_l_markup * _l_optimal < l): 
+		Fyringer
+	Observe _l_markup > 1. The firm deliberately chooses to hire too many
+	_vacancies = _l_markup * _l_optimal - l + _expQuitters;
+	If _vacancies > 0 hire by responding to ECommunicate.JobApplication
+	if(_expEmployment >_l_optimal)
+		set w_target lower than marketWage
+	else
+		set w_target higher than marketWage  (if age < 5 years: advertise) 
+	Gradvis tilpasning: _w = a * _w + (1 - a) * w_target	
+	
+AdvertiseGood()
+	Advertise current price to random sample of households
+
+AdvertiseJob()
+	Advertise current wage to random sample of households
+
+----------
+Communicate()
+	ECommunicate.JobApplication:
+		_jobApplications++
+		if _vacancies > 0: hire
+			Count down _vacancies
+		
+	ECommunicate.IQuit:
+		_jobQuitters++
+		Remove worker
+		
+	ECommunicate.Death:
+		As IQuit + add to _wageSavedDeath
+		
+	ECommunicate.CanIBuy:
+		Add to _potentialSales
+		If possible add to _sales
+		Use from _stock if necessary
+	
+
+---------------------------------------------------------------------------------
+Households
+---------------------------------------------------------------------------------
+Constructor:
+	_productivity = 1.0;
+    _age = _settings.HouseholdStartAge;
+
+----------
+Event.System.PeriodStart:	
+	Initializations..
+
+Event.Economics.Update:	
+	_income = _w * _productivity;
+	Calculate _expected_income
+	Calculate _expected_consumption
+	Calculate _consumption_budget by running BufferStock(), BehavioralSavings() or FixedSavingsRate() (Chosen household theory)
+	Make sure _wealth>=0 (No credit!)
+	
+	if(_age == _settings.HouseholdPensionAge): 
+		Quit job
+	
+	if(_age < _settings.HouseholdPensionAge):
+		if(unemployed):
+			SearchJob()
+		else:
+		{
+			WaGP: SearchJob()  // On-the-job-search
+			WaGP: Quit job     // Relocation or the like. Most important source of unemployment
+				_w_reservation = _w
+		}
+	
+	WaGP: SearchGood()
+	MakeBudget()
+
+
+Event.Economics.Shopping:      // n shoppings every month (n=4)	
+	BuyFromShops()             // Try to buy _consumption_budget/n from shops
+	if(_nShopping==n)          // Last shopping in the period    
+	{
+		Calculate _consumption_value  
+			If _consumption_value < _consumption_budget: Did not manage to use the entire budget => Product shortage 
+		WaGP: Death
+		{
+			if(employed): 
+				Quit job
+			Inheritance();
+			RemoveThisAgent();		
+		}
+	}
+	_nShoppings++
+
+Event.System.PeriodEnd:
+	_productivity = _productivity * LogNormalError 	
+	if (_fired) _fired = false   // Reset fired status
+	if(unemployed)
+		_w_reservation decreased and corrected for expected inflation 
+	age++
+
+----------
+
+BufferStock() : See note
+BehavioralSavings() : See note
+FixedSavingsRate() : See note
+
+SearchJob()
+	if(unemployed)
+		w_res = _w_reservation
+	else
+		w_res = current wage
+
+	Get sample of firms:
+		firms = GetRandomFirmsFromEmployedHouseholds(n_search)  // Network-effekt: Firms with many employees are more likely to be known
+	Sort firms by wage 
+	Apply one firm at a time (decreasing wage) until maybe there is a vacancy
+
+
+SearchGood(sector)
+	Get sample of firms:
+		firms = GetRandomFirmsFromHouseholdsGood(n_search)  // Network-effekt: Firms with many custumers are more likely to be known
+	Sort firms by price
+	Choose the firm with the lowest price
+
+MakeBudget()
+
+BuyFromShops()
+
+BuyFromShop()
+
+Inheritance()
+	inheritance = _wealth / _settings.NumberOfInheritors
+	distributed to n randomly selected households between 35 and 60 years of age (n=5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

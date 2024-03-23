@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Dream.Models.WinSOE
 {
+    
     public static class Extensions
     {
         #region NextGaussian()
@@ -99,7 +101,7 @@ namespace Dream.Models.WinSOE
         /// <param name="o">List of arguments</param>
         public static void WriteLineTab(this StreamWriter sw, params object[] o)
         {
-            sw.WriteLine(String.Join('\t', o));
+            sw.WriteLine(string.Join('\t', o));
         }
         #endregion
 
@@ -135,6 +137,37 @@ namespace Dream.Models.WinSOE
                 array[n] = array[k];
                 array[k] = temp;
             }
+        }
+        #endregion
+
+        #region Last elements in List and double array
+        /// <summary>
+        /// Returns the last n elements in a list
+        /// </summary>
+        /// <param name="n">Number of elements to return</param>
+        public static List<T> Last<T>(this List<T> list, int n)
+        {
+            // Ensure n is not greater than the number of elements in the list
+            if (n > list.Count)
+                throw new ArgumentException("Value of n exceeds the number of elements in the list.");
+
+            // Use LINQ Skip method to skip the first count - n elements, then take the last n elements
+            return list.Skip(list.Count - n).ToList();
+        }
+        /// <summary>
+        /// Returns the last n elements in a double array
+        /// </summary>
+        /// <param name="n">Number of elements to return</param>
+        public static double[] Last(this double[] d, int n)
+        {
+            // Ensure n is not greater than the number of elements in the list
+            if (n > d.Length)
+                throw new ArgumentException("Value of n exceeds the number of elements in the list.");
+
+            double[] x = new double[n];
+            Array.Copy(d, d.Length - n, x, 0, n);
+
+            return x;
         }
         #endregion
 

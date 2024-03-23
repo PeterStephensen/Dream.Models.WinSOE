@@ -1,5 +1,6 @@
 namespace Dream.Models.WinSOE
 {
+
     internal static class Program
     {
         /// <summary>
@@ -8,10 +9,30 @@ namespace Dream.Models.WinSOE
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
+
+#if WIN_APP
             ApplicationConfiguration.Initialize();
             Application.Run(new MainFormUI());
+#endif
+
+#if !WIN_APP
+            var t0 = DateTime.Now;
+
+            int seed = (new Random()).Next();
+
+            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Base,
+                            seed: seed, atw: null);
+
+            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Productivity,
+                            seed: seed, atw: null);
+
+            Console.WriteLine("Time used: {0}", DateTime.Now-t0);
+
+
+#endif
+
+
         }
+
     }
 }

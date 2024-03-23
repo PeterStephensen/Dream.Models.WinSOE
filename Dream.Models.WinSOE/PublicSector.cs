@@ -16,6 +16,9 @@ namespace Dream.Models.WinSOE
         Settings _settings;
         Time _time;
         Statistics _statistics;
+
+        double _corporateTaxRevenue=0;
+        double _lumpsumTax=0;
         #endregion
 
         #region Constructor
@@ -37,6 +40,7 @@ namespace Dream.Models.WinSOE
                     break;
 
                 case Event.System.PeriodStart:
+                    _corporateTaxRevenue = 0;
                     break;
 
                 case Event.System.Stop:
@@ -56,11 +60,30 @@ namespace Dream.Models.WinSOE
             {
                 case ECommunicate.Yes:
                     return ECommunicate.Ok;
+
+                case ECommunicate.PayCorporateTax:
+                    _corporateTaxRevenue += (double)o;
+
+                    return ECommunicate.Ok;
                 default:
                     return ECommunicate.Ok;
             }
         }
         #endregion
+
+        public double CorporateTaxRevenue
+        {
+            get { return _corporateTaxRevenue; }
+        }
+
+        /// <summary>
+        /// Lumpsum tax per household (Payed by household)
+        /// </summary>
+        public double LumpsumTax
+        {
+            get { return _lumpsumTax; }
+        }
+
 
     }
 }

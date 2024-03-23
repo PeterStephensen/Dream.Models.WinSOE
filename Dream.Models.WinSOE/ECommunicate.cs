@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dream.Models.WinSOE
+﻿namespace Dream.Models.WinSOE
 {
-    #region enum ECommunicate
     public enum ECommunicate
     {
         Yes,
@@ -24,11 +17,10 @@ namespace Dream.Models.WinSOE
         CanIBuy,
         Inheritance,
         Statistics,
+        PayCorporateTax,
         Initialize  // Only used during initialization
     }
-    #endregion
 
-    #region EStatistics
     public enum EStatistics
     {
         FirmCloseNatural,
@@ -47,11 +39,14 @@ namespace Dream.Models.WinSOE
         SuccesfullTrade,
         SuccesfullTradeNonZero,
         ZeroBudget,
-        BuyFromShop
+        BuyFromShop,
+        Inheritance,
+        JobFromUnemployment,
+        JobFromJob,
+        JobFromUnemploymentAdvertise,
+        JobFromJobAdvertise
     }
-    #endregion
 
-    #region Message Class
     public class Message
     {
 
@@ -61,18 +56,16 @@ namespace Dream.Models.WinSOE
         #endregion
 
     }
-    #endregion
 
-    #region EShock
     public enum EShock
     {
-        Nothing,
+        Base,
         Productivity,
+        ProductivityAR1,
         Tsunami,
         ProductivitySector0,
         LaborSupply
     }
 
-    #endregion
 
 }

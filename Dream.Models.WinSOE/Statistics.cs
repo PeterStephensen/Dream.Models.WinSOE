@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.IO;
-using System.Diagnostics;
-//using System.Threading;
-using System.Text.Json;
-using System.Windows.Forms;
+﻿using System.Diagnostics;
 
 using Dream.AgentClass;
 using Dream.IO;
-using System.ComponentModel;
 
 namespace Dream.Models.WinSOE
 {
@@ -45,9 +34,11 @@ namespace Dream.Models.WinSOE
         Time _time;
         double[] _marketPrice, _marketWage;
         double[] _employment, _sales, _production;
-        double _marketWageTotal = 0, _marketWageTotal0 = 0, _realwage_inflation = 0;
+        double _marketWageTotal = 0, _marketWageTotal0 = 0, _realwageInflation = 0;
         double _marketPriceTotal = 0, _marketPriceTotal0=0, _inflation=0;
-        double _profitPerHousehold, _expProfit, _profitPerWealthUnit;
+        double _expectedInflation = 0, _expectedRealwageInflation = 0;
+        double _realInterestRate=0, _expectedRealInterestRate=0;
+        double _profitPerHousehold, _expProfit, _interestRate;
         double _avrProductivity = 0;
         StreamWriter _fileFirmReport;
         StreamWriter _fileHouseholdReport;
@@ -57,7 +48,6 @@ namespace Dream.Models.WinSOE
         StreamWriter _fileMacro;
         StreamWriter _fileSectors;
         StreamWriter _fileFirmApplications;
-        double _macroProductivity = 1.0;
         double[] _sectorProductivity;
         double _expectedInterestRate;
         double _meanValue = 0;
@@ -99,12 +89,29 @@ namespace Dream.Models.WinSOE
         double _stock, _wealth;
         double _totalProfit;
         double _expextedWage = 1;
+        double _expextedPrice = 1;
+        double _growthPerPeriod;
+        int _nJobFromUnemployment;
+        int _nFromJob;
+        int _nFromUnemploymentAdvertise;
+        int _nFromJobAdvertise;
+        int _nFired;
+        double _shockSizeAbs = 0;
+        double _macroProductivity0 = 0;
+        double _inheritence = 0;
 
+        int _nextUIChartUpdateTime = 0;
+        int[,] _nFirmNewHistory;
+        int[] _nFirmNewTotalHistory;
+
+#if WIN_APP
         // Chart output
         ChartData _chartData;
+        MicroData _histogramData;
+#endif
+
         #endregion
 
-        #region Constructor
         public Statistics()
         {
             _simulation = Simulation.Instance;
@@ -133,6 +140,10 @@ namespace Dream.Models.WinSOE
             _marketWageTotal = _settings.StatisticsInitialMarketWage;
             _wageMedian = _settings.StatisticsInitialMarketWage;
             _expectedInterestRate = _settings.StatisticsInitialInterestRate;
+            _expectedRealInterestRate = _settings.StatisticsInitialInterestRate;
+            _growthPerPeriod = Math.Pow(1 + _settings.FirmProductivityGrowth, 1.0 / _settings.PeriodsPerYear) - 1;
+
+            _nFirmNewTotalHistory = new int[(1 + _settings.EndYear - _settings.StartYear) * _settings.PeriodsPerYear];
 
             //var options = new JsonSerializerOptions { WriteIndented = true };
             //string sJson = JsonSerializer.Serialize(_settings, options);
@@ -153,23 +164,21 @@ namespace Dream.Models.WinSOE
             }
 
         }
-        #endregion
-
-        #region EventProc
+        
         public override void EventProc(int idEvent)
         {
             
             switch (idEvent)
             {
-
                 case Event.System.Start:
                     OpenFiles();
+#if WIN_APP
                     _chartData = new ChartData(1 + _time.EndPeriod - _time.StartPeriod);
+                    _histogramData = new MicroData();
+#endif
                     break;
 
                 case Event.System.PeriodStart:
-                    #region Event.System.PeriodStart
-
                     if (_time.Now == _settings.StatisticsWritePeriode)
                     {
 
@@ -208,30 +217,62 @@ namespace Dream.Models.WinSOE
                     double[] discountedProfits = new double[_settings.NumberOfSectors];
                     int[] nFirms = new int[_settings.NumberOfSectors];
                     _totalProfit = 0;
+
+                    // Growth corrected real interest rate
+                    double r = (1 + _expectedRealInterestRate) / (1 + _growthPerPeriod) - 1.0;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    //double r = _expectedRealInterestRate;
+                    //double r = _expectedInterestRate;
+
+                    //_nFirmNewTotalHistory
+                    //double[] NFirmNewHistTotal = new double[(_settings.EndYear - _settings.StartYear)*_settings.PeriodsPerYear+1];
+                    int t = _time.Now;
+                    _nFirmNewTotalHistory[t] = 0;
+                    if(t>0)
+                        for (int i = 0; i < _settings.NumberOfSectors; i++)
+                            _nFirmNewTotalHistory[t] += (int)_simulation.NFirmNewHist[t-1][i];
+
+                    if (_nFirmNewTotalHistory[t] <= 0)
+                        _nFirmNewTotalHistory[t] = _settings.InvestorInitialInflow;
+
+                    //int zz = 0;
+                    //if(_time.Now>12*60)
+                    //    zz++;
+
+
                     foreach (var fi in _firmInfo)
                     {
                         _totalProfit += fi.Profit;
 
-                        discountedProfitsTotal += fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age); 
-                        discountedProfits[fi.Sector] += fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age);
+                        discountedProfitsTotal += (fi.Profit / Math.Pow(1 + r, fi.Age)) / _nFirmNewTotalHistory[_time.Now - fi.Age];
+                        discountedProfits[fi.Sector] += (fi.Profit / Math.Pow(1 + r, fi.Age)) / _simulation.NFirmNewHist[_time.Now - fi.Age][fi.Sector];
+                        //discountedProfitsTotal += (fi.Profit / Math.Pow(1 + r, fi.Age));
+                        //discountedProfits[fi.Sector] += (fi.Profit / Math.Pow(1 + r, fi.Age));
+
                         nFirms[fi.Sector]++; 
                     }
 
-                    //_profitPerHousehold = _totalProfit / _simulation.Households.Count;
-                    // HERFRA!!!!!!!!!!!!!!!
-
-
                     double dpTotal = discountedProfitsTotal / _firmInfo.Count;
-                    
+                    //double dpTotal = discountedProfitsTotal;
+
                     double[] dp = new double[_settings.NumberOfSectors];
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) dp[i] = discountedProfits[i] / nFirms[i];
+                    for (int i = 0; i < _settings.NumberOfSectors; i++)
+                        dp[i] = discountedProfits[i] / nFirms[i];
+                        //dp[i] = discountedProfits[i];
 
                     _sigmaRiskTotal = 0;
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = 0;
+                    for (int i = 0; i < _settings.NumberOfSectors; i++) 
+                        _sigmaRisk[i] = 0;
+                    
                     foreach (var fi in _firmInfo)
                     {
-                        _sigmaRiskTotal += Math.Pow(fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age) - dpTotal, 2);
-                        _sigmaRisk[fi.Sector] += Math.Pow(fi.Profit / Math.Pow(1 + _expectedInterestRate, fi.Age) - dp[fi.Sector], 2);
+                        if (_nFirmNewTotalHistory[_time.Now - fi.Age] > 0)
+                        {
+                            _sigmaRiskTotal += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) / _nFirmNewTotalHistory[_time.Now - fi.Age] - dpTotal, 2);
+                            _sigmaRisk[fi.Sector] += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) / _simulation.NFirmNewHist[_time.Now - fi.Age][fi.Sector] - dp[fi.Sector], 2);
+
+                            //_sigmaRiskTotal += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) - dpTotal, 2);
+                            //_sigmaRisk[fi.Sector] += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) - dp[fi.Sector], 2);
+                        }
                     }
 
                     _sigmaRiskTotal = Math.Sqrt(_sigmaRiskTotal / _firmInfo.Count);
@@ -256,17 +297,30 @@ namespace Dream.Models.WinSOE
                             totWealth += h.Wealth;
 
                         if (totWealth > 0)
-                            _profitPerWealthUnit = _simulation.Investor.TakeOut / totWealth;
+                            _interestRate = _simulation.Investor.TakeOut / totWealth;
+
+                        if(_time.Now<_settings.BurnInPeriod3)
+                            _interestRate = _settings.StatisticsInitialInterestRate;
+                        //if(_interestRate<0)  
+                        //    _interestRate = 0;   
 
                         // Simplification: Exogeneous interes rate
-                        if(_settings.SimplificationInterestRate)
-                            _profitPerWealthUnit = _settings.StatisticsInitialInterestRate;
+                        if (_settings.SimplificationInterestRate)
+                            _interestRate = _settings.StatisticsInitialInterestRate;
 
                         //-----------------------------------------------------------------------------------------------
-                        // Endogenous interest rate!!!!!!!!!!!!!!!!!!!!!!!!!!
                         double smooth = 0.99;  //0.99
-                        if (_time.Now > _settings.BurnInPeriod2)
-                            _expectedInterestRate = smooth * _expectedInterestRate + (1 - smooth) * _profitPerWealthUnit;
+                        if (_time.Now > _settings.BurnInPeriod3)
+                        {
+                            _expectedInterestRate = smooth * _expectedInterestRate + (1 - smooth) * _interestRate;
+                            _expectedInflation = smooth * _expectedInflation + (1 - smooth) * _inflation;
+                            _expectedRealwageInflation = smooth * _expectedRealwageInflation + (1 - smooth) * _realwageInflation;
+                            _expectedRealInterestRate = smooth * _expectedRealInterestRate + (1 - smooth) * _realInterestRate;
+
+                            if (_expectedInterestRate<0)   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+                                _expectedInterestRate = 0;
+
+                        }
                         //-----------------------------------------------------------------------------------------------
                     }
 
@@ -300,12 +354,17 @@ namespace Dream.Models.WinSOE
                     _nSuccesfullTrade = 0;
                     _nZeroBudget = 0;
                     _nSuccesfullTradeNonZero = 0;
+                    
+                    _nJobFromUnemployment = 0;
+                    _nFromJob = 0;
+                    _nFromUnemploymentAdvertise = 0;
+                    _nFromJobAdvertise = 0;
+                    _nFired = 0;
 
+                    _inheritence = 0;
                     break;
-                    #endregion
 
                 case Event.System.PeriodEnd:
-                    #region Event.System.PeriodEnd
                     #region Calculations
                     if (_time.Now == _settings.StatisticsWritePeriode)
                         Write();
@@ -406,7 +465,7 @@ namespace Dream.Models.WinSOE
                         _marketWageTotal = meanWageTot / _totalEmployment;
 
                     if (_marketWageTotal0 > 0)
-                        _realwage_inflation = (_marketWageTotal/_marketPriceTotal) / (_marketWageTotal0/ _marketPriceTotal0) - 1;
+                        _realwageInflation = (_marketWageTotal/_marketPriceTotal) / (_marketWageTotal0/ _marketPriceTotal0) - 1;
 
 
                     //----------
@@ -448,7 +507,7 @@ namespace Dream.Models.WinSOE
                         h_ok += h.Ok;
                         consValue += h.ConsumptionValue;
                         consBudget += h.ConsumptionBudget;
-                        totalConsumption += h.Consumption;
+                        totalConsumption += h.ConsumptionSector0;
 
                         for (int i = 0; i < _settings.NumberOfSectors; i++)
                             if (h.FirmShopArray(i) != null)
@@ -483,6 +542,7 @@ namespace Dream.Models.WinSOE
                         _marketPriceTotal0 = _marketPriceTotal;
                         _marketWageTotal0 = _marketWageTotal;
 
+                        _realInterestRate = (1+_interestRate)/(1+_inflation) - 1;
 
                         //_discountedProfits /= _marketPrice;
                     }
@@ -607,59 +667,116 @@ namespace Dream.Models.WinSOE
                     #endregion
 
                     #region Chart output
-                    if(!_settings.SaveScenario)
+#if WIN_APP
+                    double gg = Math.Pow(1 + 0.02, 1.0 / 12) - 1;
+                    double corr = Math.Pow(1 + gg, _time.Now);
+                    double smooth2 = 0.99;
+                    _expextedWage = smooth2 * _expextedWage + (1 - smooth2) * _marketWageTotal;
+                    _expextedPrice = smooth2 * _expextedPrice + (1 - smooth2) * _marketPriceTotal;
+
+                    _chartData.nFirms[_time.Now] = n_firms;
+                    _chartData.NewFirms[_time.Now] = _nFirmNew;
+                    _chartData.ClosedFirms[_time.Now] = _nFirmCloseNatural + _nFirmCloseNegativeProfit + _nFirmCloseTooBig + _nFirmCloseZeroEmployment;
+                    _chartData.nHouseholds[_time.Now] = _simulation.Households.Count;
+                    _chartData.Sales[_time.Now] = _totalSales / corr;
+                    _chartData.RealWage[_time.Now] = (_marketWageTotal / _marketPriceTotal) / corr;
+                    _chartData.Price[_time.Now] = _marketPriceTotal;
+                    _chartData.Wage[_time.Now] = _marketWageTotal;
+                    _chartData.Consumption[_time.Now] = totalConsumption / corr;
+                    _chartData.Production[_time.Now] = _totalProduction / corr;
+                    _chartData.SharpeRatio[_time.Now] = _sharpeRatioTotal;
+                    _chartData.ExpectedSharpeRatio[_time.Now] = _expSharpeRatioTotal;
+                    _chartData.UnemploymentRate[_time.Now] = 1.0 * _n_unemployed / _n_laborSupply;
+                    _chartData.ConsumptionLoss[_time.Now] = consLoss;
+                    _chartData.Stock[_time.Now] = _stock / _totalProduction;
+                    //_chartData.Wealth[_time.Now] = _wealth / consBudget;
+                    //_chartData.Inheritance[_time.Now] = 100*_inheritence / consBudget;
+                    //_chartData.Wealth[_time.Now] = _wealth / (_expextedWage*_n_laborSupply);
+                    //_chartData.Inheritance[_time.Now] = 100 * _inheritence / (_expextedWage * _n_laborSupply);
+                    _chartData.Wealth[_time.Now] = _wealth / _expextedPrice / corr;
+                    _chartData.Inheritance[_time.Now] = 100 * _inheritence / _expextedPrice / corr;
+
+                    _chartData.Employment[_time.Now] = _n_laborSupply - _n_unemployed;
+                    _chartData.LaborSupplyProductivity[_time.Now] = _n_laborSupply;
+                    //_chartData.ProfitPerHousehold[_time.Now] = _profitPerHousehold;
+
+                    _chartData.InterestRate[_time.Now] = Math.Pow(1 + _interestRate, _settings.PeriodsPerYear) - 1;
+                    _chartData.ExpectedInterestRate[_time.Now] = Math.Pow(1 + _expectedInterestRate, _settings.PeriodsPerYear) - 1;
+
+                    _chartData.RealInterestRate[_time.Now] = Math.Pow(1 + _realInterestRate, _settings.PeriodsPerYear) - 1;
+                    _chartData.ExpectedRealInterestRate[_time.Now] = Math.Pow(1 + _expectedRealInterestRate, _settings.PeriodsPerYear) - 1;
+
+                    _chartData.Profit[_time.Now] = 40*_totalProfit / _expextedPrice / corr;
+
+                    _chartData.Inflation[_time.Now] = Math.Pow(1 + _inflation, _settings.PeriodsPerYear) - 1;
+                    //_chartData.RealWageInflation[_time.Now] = _realWageInflation;
+
+                    if (_time.Now > 2)
                     {
-                        double gg = Math.Pow(1 + 0.02, 1.0 / 12) - 1;
-                        double corr = Math.Pow(1 + gg, _time.Now);
-                        double smooth = 0.99;
-                        _expextedWage = smooth * _expextedWage + (1 - smooth) * _marketWageTotal;
+                        //_chartData.Inflation[_time.Now] =
+                        //    Math.Pow(_chartData.Price[_time.Now] / _chartData.Price[_time.Now - 1], 12) - 1;
 
-                        _chartData.nFirms[_time.Now] = n_firms;
-                        _chartData.nHouseholds[_time.Now] = _simulation.Households.Count;
-                        _chartData.Sales[_time.Now] = _totalSales / corr;
-                        _chartData.RealWage[_time.Now] = (_marketWageTotal / _marketPriceTotal) / corr;
-                        _chartData.Price[_time.Now] = _marketPriceTotal;
-                        _chartData.Consumption[_time.Now] = totalConsumption / corr;
-                        _chartData.Production[_time.Now] = _totalProduction / corr;
-                        _chartData.SharpeRatio[_time.Now] = _sharpeRatioTotal;
-                        _chartData.UnemploymentRate[_time.Now] = 1.0 * _n_unemployed / _n_laborSupply;
-                        _chartData.ConsumptionLoss[_time.Now] = consLoss;
-                        _chartData.Stock[_time.Now] = _stock / _production.Sum();
-                        _chartData.Wealth[_time.Now] = _wealth / consBudget;
-                        _chartData.Employment[_time.Now] = _n_laborSupply - _n_unemployed;
-                        _chartData.LaborSupplyProductivity[_time.Now] = _n_laborSupply;
-                        _chartData.ProfitPerHousehold[_time.Now] = _profitPerHousehold;
-                        _chartData.ProfitPerWealthUnit[_time.Now] = Math.Pow(1+_profitPerWealthUnit, _settings.PeriodsPerYear) - 1 ;
-                        _chartData.InterestRate[_time.Now] = Math.Pow(1 + _expectedInterestRate, _settings.PeriodsPerYear) - 1;
-                        _chartData.ProfitShare[_time.Now] = _profitPerHousehold * _simulation.Households.Count /
-                                                                     (_profitPerHousehold * _simulation.Households.Count + wage_income);
-                        _chartData.Inflation[_time.Now] = Math.Pow(_inflation + 1, 12) - 1;
-                        _chartData.RealWageInflation[_time.Now] = Math.Pow(_realwage_inflation + 1, _settings.PeriodsPerYear) - 1;
+                        _chartData.RealWageInflation[_time.Now] =
+                            Math.Pow(_chartData.RealWage[_time.Now] / (_chartData.RealWage[_time.Now - 1] / (1 + gg)), 12) - 1;
 
-                        //_chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _marketWageTotal;
-                        //_chartData.InvestorIncome[_time.Now] = _simulation.Investor.Income / _marketWageTotal;
-                        //_chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _marketWageTotal;
-                        //_chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _marketWageTotal;
-                        //_chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _marketWageTotal;
+                        _chartData.WageInflation[_time.Now] =
+                            Math.Pow(_chartData.Wage[_time.Now] / (_chartData.Wage[_time.Now - 1]), 12) - 1;
 
-                        _chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _expextedWage;
-                        _chartData.InvestorIncome[_time.Now] = _simulation.Investor.Income / _expextedWage;
-                        _chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _expextedWage;
-                        _chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _expextedWage;
-                        _chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _expextedWage;
 
-                        MainFormUI mainFormUI = _simulation.WinFormElements.MainFormUI;
+                    }
 
-                        if (_time.Now % _settings.StatisticsChartUpdateInterval == 0)
+
+                    _chartData.InvestorTakeOut[_time.Now] = _simulation.Investor.TakeOut / _expextedWage;
+                    
+                    double investorIncome = _simulation.Investor.Income / _expextedWage;                    
+                    _chartData.InvestorIncome[_time.Now] = Double.IsNaN(investorIncome) ? 0 : investorIncome;                   
+                    
+                    _chartData.InvestorPermanentIncome[_time.Now] = _simulation.Investor.PermanentIncome / _expextedWage;
+                    _chartData.InvestorWealth[_time.Now] = _simulation.Investor.Wealth / _expextedWage;
+                    _chartData.InvestorWealthTarget[_time.Now] = _simulation.Investor.WealthTarget / _expextedWage;
+
+                    _chartData.nJobFromUnemployment[_time.Now] = _nJobFromUnemployment;
+                    _chartData.nJobFromJob[_time.Now] = _nFromJob;
+                    _chartData.nJobFromUnemploymentAdvertise[_time.Now] = _nFromUnemploymentAdvertise;
+                    _chartData.nJobFromJobAdvertise[_time.Now] = _nFromJobAdvertise;
+
+                    //_chartData.Extra[_time.Now] = 0;
+                    _chartData.Extra[_time.Now] = _settings.InvestorProfitSensitivity;
+
+                    // Reporting progress
+                    MainFormUI mainFormUI=null;
+                    if (_settings.SaveScenario)
+                    {
+                        if (_simulation.WinFormElements != null)
+                        {
+                            WinFormElements wfe = _simulation.WinFormElements;
+                            mainFormUI = wfe.MainFormUI;
+
+                            if (wfe.ArgsToWorkerScenario.ID == 0)
+                                mainFormUI.backgroundWorkersScenarios[0].ReportProgress(_time.Now);
+
+                        }
+                    }
+                    else
+                    {
+                        mainFormUI = _simulation.WinFormElements.MainFormUI;
+                        if(mainFormUI.NeedHistogramData & _time.Now % 6==0)
+                        {
+                            collectMicroData();
+                        }
+                        
+                        //if (_time.Now % _settings.UIChartUpdateInterval == 0)
+                        if(_time.Now==_nextUIChartUpdateTime)
                         {
                             _chartData.Wait = 0;
                             while (mainFormUI.Busy)
                             {
                                 _chartData.Wait++;
-                                Thread.Sleep(50);
+                                Thread.Sleep(100);
                             }
-
+                         
                             mainFormUI.backgroundWorker.ReportProgress(_time.Now, _chartData);
+                            _nextUIChartUpdateTime += _settings.UIChartUpdateInterval;
 
                         }
                         else
@@ -668,42 +785,48 @@ namespace Dream.Models.WinSOE
                         }
                     }
 
-                    // Reporting progress in Scenarios
-                    if (_settings.SaveScenario)
-                    {
-                        if(_simulation.WinFormElements!=null)
-                        {
-                            WinFormElements wfe = _simulation.WinFormElements;
-                            MainFormUI mainFormUI = wfe.MainFormUI;
-
-                            if (wfe.ArgsToWorkerScenario.ID == 0)
-                                mainFormUI.backgroundWorkersScenarios[0].ReportProgress(_time.Now);
-
-                        }
-
-                    }
-
+#endif
                     #endregion
 
                     #region More stuff
                     // Shock: Productivity shock
                     if (_time.Now == _settings.ShockPeriod)
                     {
-                        if(_settings.Shock==EShock.Productivity)
-                            _macroProductivity = 1.1;
+                        if (_settings.Shock == EShock.Productivity)
+                            _settings.MacroProductivity *= (1 + _settings.ShockSize);
+
+                        if (_settings.Shock == EShock.ProductivityAR1)
+                        {
+                            _shockSizeAbs = _settings.ShockSize * _settings.MacroProductivity;
+                            _macroProductivity0 = _settings.MacroProductivity;
+                            _settings.MacroProductivity = _macroProductivity0 + _shockSizeAbs;
+                        }
 
                         if (_settings.Shock == EShock.ProductivitySector0)
                             _sectorProductivity[0] = 1.1;
 
                     }
+                    if (_time.Now > _settings.ShockPeriod)
+                    {
+                        if (_settings.Shock == EShock.ProductivityAR1)
+                        {
+                            _shockSizeAbs *= 0.98;
+                            _settings.MacroProductivity = _macroProductivity0 + _shockSizeAbs;
+                        }
+                    }
 
                     int nFirmClosed = _nFirmCloseNatural + _nFirmCloseNegativeProfit + _nFirmCloseTooBig + _nFirmCloseZeroEmployment;
                     //_fileMacro.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, _expSharpeRatioTotal, _macroProductivity, _marketPriceTotal, 
-                    _fileMacro.WriteLineTab(_settings.RandomSeed, Environment.MachineName, _runName, _time.Now, _expSharpeRatioTotal, _macroProductivity, _marketPriceTotal,
-                                                _marketWageTotal,n_firms, _totalEmployment, _totalSales, _laborSupplyProductivity, _n_laborSupply, _n_unemployed,
-                                                _totalProduction, _simulation.Households.Count, _nFirmNew, nFirmClosed, _sigmaRiskTotal, _sharpeRatioTotal, 
-                                                mean_age, tot_vacancies, _marketPrice[0], _marketWage[0], _employment[0], _sales[0], 
-                                                _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, _totalPotensialSales, _expectedInterestRate);
+                    _fileMacro.WriteLineTab(_settings.RandomSeed, Environment.MachineName, _runName, _time.Now, 
+                                            _expSharpeRatioTotal, _settings.MacroProductivity, _marketPriceTotal,
+                                            _marketWageTotal,n_firms, _totalEmployment, _totalSales, _laborSupplyProductivity, 
+                                            _n_laborSupply, _n_unemployed,
+                                            _totalProduction, _simulation.Households.Count, _nFirmNew, nFirmClosed, 
+                                            _sigmaRiskTotal, _sharpeRatioTotal, 
+                                            mean_age, tot_vacancies, _marketPrice[0], _marketWage[0], 
+                                            _employment[0], _sales[0], 
+                                            _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, 
+                                            _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock);
 
                     //_fileMacro.Flush();
 
@@ -724,7 +847,6 @@ namespace Dream.Models.WinSOE
                     if(_time.Now>12)
                         _vb = 0.9 * _vb + (1-0.9) * consValue / consBudget;
 
-
                     double g = Math.Pow(1 + _settings.FirmProductivityGrowth, 1.0 / _settings.PeriodsPerYear) - 1;
                     double real_w = (_marketWageTotal / _marketPriceTotal) * Math.Pow(1+g, -_time.Now);
                     double yr = 1.0 * _settings.StartYear + 1.0 * _time.Now / _settings.PeriodsPerYear;
@@ -744,14 +866,17 @@ namespace Dream.Models.WinSOE
                     //    n_firms, _simulation.Households.Count, w_infl, p_infl, _avrProductivity, _totalSales/1000, totalConsumption/1000, 
                     //    _vb, real_w, _expSharpeRatio[0], 1.0*_n_unemployed/_n_laborSupply);
                     #endregion
+
                     break;
-                    #endregion
 
                 case Event.System.Stop:
-                    #region Event.System.Stop
+                    WriteAvrFile(12 * 50);
+
                     // Last picture
+#if WIN_APP
                     if(_simulation.WinFormElements!=null)
                         _simulation.WinFormElements.DoWorkEventArgs.Result = _chartData;
+#endif
                     CloseFiles();
 
                     #region R-stuff NOT USED
@@ -770,16 +895,13 @@ namespace Dream.Models.WinSOE
                     //}
                     #endregion
                     break;
-                    #endregion
 
                 default:
                     base.EventProc(idEvent);
                     break;
             }
         }
-        #endregion
-            
-        #region Communicate
+        
         public void Communicate(EStatistics comID, object o)
         {
             Firm f = null;
@@ -859,22 +981,66 @@ namespace Dream.Models.WinSOE
                     _nSuccesfullTradeNonZero++;
                     return;
 
+                case EStatistics.JobFromUnemployment:    
+                    _nJobFromUnemployment++;
+                    return; 
+
+                case EStatistics.JobFromJob:
+                    _nFromJob++;
+                    return;
+
+                case EStatistics.JobFromUnemploymentAdvertise:
+                    _nFromUnemploymentAdvertise++;
+                    return;
+
+                case EStatistics.JobFromJobAdvertise:   
+                    _nFromJobAdvertise++;
+                    return;
+
+                case EStatistics.Inheritance:
+                    double inh = (double)o;
+                    _inheritence+=inh;
+                    return;
+
                 default:
                     return;
             }
         }
-        #endregion
 
         #region Internal methods
-        #region Write()
-        void Write()
-        {
-            _fileDBStatistics.WriteLineTab(_expSharpeRatioTotal, _macroProductivity, _marketPrice, _marketWage);
+
+        void collectMicroData()
+        { 
+
+            List<double> productivity = new();
+            List<double> profit = new();
+            List<double> production = new();
+            List<double> age = new();
+            List<double> employment = new();
+            double corr = Math.Pow(1 + _growthPerPeriod, _time.Now);
+
+            for (int i = 0; i < _settings.NumberOfSectors; i++)
+                foreach (Firm f in _simulation.Sector(i))
+                {
+                    productivity.Add(f.Productivity / corr);
+                    production.Add(f.Production / corr);
+                    profit.Add(f.Profit / _marketPriceTotal / corr);
+                    age.Add(1.0 * f.Age / 12);
+                    employment.Add(f.Employment);
+                }
+
+            _chartData.HistogramData.Productivity = productivity.ToArray();
+            _chartData.HistogramData.Profit = profit.ToArray();
+            _chartData.HistogramData.Production = production.ToArray();
+            _chartData.HistogramData.Age = age.ToArray();
+            _chartData.HistogramData.Employment = employment.ToArray();
 
         }
-        #endregion
+        void Write()
+        {
+            _fileDBStatistics.WriteLineTab(_expSharpeRatioTotal, _settings.MacroProductivity, _marketPrice, _marketWage);
 
-        #region RunRScript()
+        }
         void RunRScript(string fileName)
         {
 
@@ -889,13 +1055,11 @@ namespace Dream.Models.WinSOE
             //            Thread.Sleep(100);
 
         }
-        #endregion
-
-        #region OpenFiles()
         void OpenFiles()
         {
             if (!_settings.SaveScenario)
             {
+
                 string path = _settings.ROutputDir + "\\data_year.txt";
                 if (File.Exists(path)) File.Delete(path);
                 using (StreamWriter sw = File.CreateText(path))
@@ -916,7 +1080,8 @@ namespace Dream.Models.WinSOE
                 _fileFirmReport = File.CreateText(path);
                 _fileFirmReport.WriteLine("Time\tID\tProductivity\tEmployment\tProduction\tSales\tVacancies\tExpectedPrice\tExpectedWage\tPrice\tWage\tApplications" +
                     "\tQuitters\tProfit\tValue\tPotensialSales\tOptimalEmployment\tOptimalProduction\tExpectedSales\texpApplications\texpQuitters\texpAvrProd\tMarketPrice" +
-                    "\tMarketWage\tExpectedPotentialSales\tExpectedEmployment\tEmploymentMarkup\tRelativePrice\tRelativeWage\tExpectedVacancies\tAge\tStock\tFirerings");
+                    "\tMarketWage\tExpectedPotentialSales\tExpectedEmployment\tEmploymentMarkup\tRelativeTargetPrice\tRelativeTargetWage\tExpectedVacancies\tAge\tStock\tFirerings" +
+                    "\tNewEmployment\tRelativeWage\tRelativePrice");
 
                 path = _settings.ROutputDir + "\\applications.txt";
                 if (File.Exists(path)) File.Delete(path);
@@ -927,8 +1092,9 @@ namespace Dream.Models.WinSOE
                 path = _settings.ROutputDir + "\\household_reports.txt";
                 if (File.Exists(path)) File.Delete(path);
                 _fileHouseholdReport = File.CreateText(path);
-                _fileHouseholdReport.WriteLine("Time\tID\tProductivity\tAge\tConsumption\tValConsumption\tIncome\tWealth\tWage\tP_macro\tConsumptionBudget\t" +
-                                       "PermanentIncome\tWealthTarget");
+                _fileHouseholdReport.WriteLine("Time\tID\tProductivity\tAge\tConsumption\tValConsumption\tIncome\tWealth\tWage" +
+                    "\tP_macro\tConsumptionBudget\tPermanentIncome\tWealthTarget\tSearchJobOnJob\tSearchJobUnemployed\tUnemployed" +
+                    "\tUnempDuration\tReservationWage");
 
                 path = _settings.ROutputDir + "\\output.txt";
                 if (!File.Exists(path))
@@ -953,53 +1119,25 @@ namespace Dream.Models.WinSOE
                 }
 
                 string scnPath = _settings.ROutputDir + "\\scenario_info.txt";
-                if (_settings.Shock == EShock.Nothing) // Base run
+                if (_settings.Shock == EShock.Base) // Base run
                 {
-                    //if (!File.Exists(scnPath))
-                    //    _scenario_id = 1;
-                    //else
-                    //{
-                    //    using (StreamReader sr = File.OpenText(scnPath))
-                    //        _scenario_id = Int32.Parse(sr.ReadLine());
-                    //    _scenario_id++;
-                    //    Console.WriteLine("Base: {0}, {1}", _scenario_id, _simulation.Seed); // Save seed so it can be used in shocks
 
-                    //}
+                    string seed = _settings.RandomSeed.ToString();
 
-                    //if (File.Exists(scnPath)) File.Delete(scnPath);
-                    //using (StreamWriter sw = File.CreateText(scnPath))
-                    //{
-                    //    sw.WriteLine("{0}", _scenario_id);
-                    //    sw.WriteLine("{0}", _simulation.Seed);
-                    //}
-
-                    //macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\base_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".txt";
-                    //sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".txt";
-                    //settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".json";
-
-                    int seed = _settings.RandomSeed;
-                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\base_" + seed.ToString() + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + seed.ToString() + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + seed.ToString() + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\base_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + seed + "_" + Environment.MachineName + ".json";
 
                 }
                 else //Counterfactual
                 {
 
-                    //using (StreamReader sr = File.OpenText(scnPath))
-                    //    _scenario_id = Int32.Parse(sr.ReadLine());
-
                     _runName = _settings.Shock.ToString();
+                    string seed = _settings.RandomSeed.ToString();
 
-                    //macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\count_"  + _runName + "_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".txt";
-                    //sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".txt";
-                    //settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + _scenario_id.ToString() + "_" + Environment.MachineName + ".json";
-                    //Console.WriteLine("{0}: {1}, {2}", _runName, _scenario_id, _simulation.Seed);
-
-                    int seed = _settings.RandomSeed;
-                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\count_" + _runName + "_" + seed.ToString() + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed.ToString() + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed.ToString() + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
 
 
                 }
@@ -1012,7 +1150,7 @@ namespace Dream.Models.WinSOE
                    "marketWage\tnFirms\tEmployment\tSales\tLaborSupply\tnLaborSupply\tnUnemployed\t" +
                    "Production\tnHouseholds\tnFirmNew\tnFirmClosed\tSigmaRisk\tSharpeRatio\tMeanAge\t" +
                    "Vacancies\tmarketPrice0\tmarketWage0\temployment0\tsales0\tnFirm0\texpShapeRatio0\ttotalRevenues\t" +
-                   "PotensialSales\tInterestRate");
+                   "PotensialSales\tInterestRate\tRealWealth\tStock");
 
             if (File.Exists(sectorsPath)) File.Delete(sectorsPath);
             _fileSectors = File.CreateText(sectorsPath);
@@ -1027,9 +1165,6 @@ namespace Dream.Models.WinSOE
             //File.WriteAllText(_settings.ROutputDir + "\\last_json.json", sJson);
 
         }
-        #endregion
-
-        #region CloseFiles()
         void CloseFiles()
         {
             if (!_settings.SaveScenario)
@@ -1040,96 +1175,145 @@ namespace Dream.Models.WinSOE
                 _fileSectors.Close();
             }
         }
-        #endregion
-        #endregion
+        void WriteAvrFile(int n)
+        {
+            //Write file with average over the last n opservations
+            string path = _settings.ROutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
+            if(File.Exists(path)) File.Delete(path); //Delete if same random seed
+
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                sw.WriteLine("nFirms\tnHouseholds\tSales\tRealWage\tPrice\tConsumption\tProduction\tSharpeRatio\tUnemploymentRate\tConsumptionLoss\tStock\tWealth\tEmployment\tProfitPerWealthUnit\tInterestRate\tInflation\tRealWageInflation\tExtra");
+#if WIN_APP
+                sw.WriteLineTab(_chartData.nFirms.Last(n).Average(),
+                                _chartData.nHouseholds.Last(n).Average(),
+                                _chartData.Sales.Last(n).Average(),
+                                _chartData.RealWage.Last(n).Average(),
+                                _chartData.Price.Last(n).Average(),
+                                _chartData.Consumption.Last(n).Average(),
+                                _chartData.Production.Last(n).Average(),
+                                _chartData.SharpeRatio.Last(n).Average(),
+                                _chartData.UnemploymentRate.Last(n).Average(),
+                                _chartData.ConsumptionLoss.Last(n).Average(),
+                                _chartData.Stock.Last(n).Average(),
+                                _chartData.Wealth.Last(n).Average(),
+                                _chartData.Employment.Last(n).Average(),
+                                _chartData.InterestRate.Last(n).Average(),
+                                _chartData.ExpectedInterestRate.Last(n).Average(),
+                                _chartData.Inflation.Last(n).Average(),
+                                _chartData.RealWageInflation.Last(n).Average(),
+                                _chartData.Extra.Last(n).Average()
+                               );
+#endif
+            }
+        }
+#endregion
 
         #region Public proporties
-        public double[] PublicMarketWage
+        public double[] MarketWage
         {
             get { return _marketWage; }
         }
-        public double PublicMarketWageTotal
+        public double MarketWageTotal
         {
             //get { return _marketWageTotal; }
             get { return _wageMedian; }
         }
-        public double PublicMarketPriceTotal
+        public double MarketPriceTotal
         {
             get { return _marketPriceTotal; }
         }
-
-        public double[] PublicMarketPrice
+        public double[] MarketPrice
         {
             //get { return _marketPrice; }
             get { return _priceMedian; }
         }
-
-        public double PublicProductivity
+        public double GrowthPerPeriod
         {
-            get { return _macroProductivity; }
+            get { return _growthPerPeriod; }
         }
-        public double[] PublicSectorProductivity
+        public double[] SectorProductivity
         {
             get { return _sectorProductivity; }
         }
-        public double PublicProfitPerHousehold
+        public double ProfitPerHousehold
         {
             get { return _profitPerHousehold; }
         }
-        public double PublicMeanValue
+        public double MeanValue
         {
             get { return _meanValue; }
         }
-        public double PublicAverageProductivity
+        public double AverageProductivity
         {
             get { return _avrProductivity; }
         }
-
-        public double PublicExpectedProfitPerFirm
+        public double ExpectedProfitPerFirm
         {
             get { return _expProfit; }
         }
-        public double PublicDiscountedProfits
+        public double DiscountedProfits
         {
             get { return _discountedProfits; }
         }
-        public double PublicExpectedDiscountedProfits
+        public double ExpectedDiscountedProfits
         {
             get { return _expDiscountedProfits; }
         }
-        public double PublicExpectedSharpRatioTotal
+        public double ExpectedSharpRatioTotal
         {
             get { return _expSharpeRatioTotal; }
         }
-        public double[] PublicExpectedSharpRatio
+        public double[] ExpectedSharpRatio
         {
             get { return _expSharpeRatio; }
         }
-        public double PublicSharpRatioTotal
+        public double SharpRatioTotal
         {
             get { return _sharpeRatioTotal; }
         }
         /// <summary>
         /// Interest rate per period
         /// </summary>
-        public double PublicExpectedInterestRate
+        public double ExpectedInterestRate
         {
             get { return _expectedInterestRate; }
         }
-        public double PublicHouseholdWealth
+        public double HouseholdWealth
         {
             get { return _wealth; }
         }
-
         /// <summary>
-        /// Profit per household wealth unit
+        /// Short run interest rate
         /// </summary>
-        public double PublicProfitPerWealthUnit
+        public double InterestRate
         {
-            get { return _profitPerWealthUnit; }
+            get { return _interestRate; }
         }
-
-        
+        public double Inflation
+        {
+            get { return _inflation; }
+        }
+        public double ExpectedInflation
+        {
+            get { return _expectedInflation; }
+        }
+        public double RealWageInflation
+        {
+            get { return _realwageInflation; }
+        }
+        public double ExpectedRealWageInflation
+        {
+            get { return _expectedRealwageInflation; }
+        }
+        public double RealInterestRate
+        {
+            get { return _realInterestRate; }
+        }
+        public double ExpectedRealInterestRate
+        {
+            get { return _expectedRealInterestRate; }
+        }
         public StreamWriter StreamWriterFirmReport
         {
             get { return _fileFirmReport; }
@@ -1150,10 +1334,7 @@ namespace Dream.Models.WinSOE
         {
             get { return _fileFirmApplications; }
         }
-
         public double TotalProfit { get { return _totalProfit; } }
-
-
         #endregion
 
     }

@@ -1,15 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Dream.Models.WinSOE.UI
+﻿namespace Dream.Models.WinSOE.UI
 {
+    public class ArgsToWorker
+    {
+        public List<EShock> Shocks { get; set; }
+        public int NumberOfCycles { get; set; }
+        public int CurrentCycle { get; set; }
+
+        public int NumberOfThreads { get; set; }
+        public int ID { get; set; }
+
+        public ArgsToWorker(int id, List<EShock> shocks, int numberOfCycles, int numberOfThreads)
+        {
+            Shocks = new(shocks);
+            NumberOfCycles = numberOfCycles;
+            NumberOfThreads = numberOfThreads;
+            ID = id;
+            CurrentCycle = 0;
+        }
+    }
+
+
+#if WIN_APP
     public partial class ScenariosForm : Form
     {
 
@@ -29,7 +40,7 @@ namespace Dream.Models.WinSOE.UI
 
             foreach (var enumValue in enumValues)
             {
-                if (enumValue.ToString() != "Nothing")
+                if (enumValue.ToString() != "Base")
                     checkedListBoxScenarioShocks.Items.Add(enumValue);
             }
 
@@ -80,23 +91,6 @@ namespace Dream.Models.WinSOE.UI
 
         }
     }
+#endif
 
-    public class ArgsToWorker
-    {
-        public List<EShock> Shocks { get; set; }
-        public int NumberOfCycles { get; set; }
-        public int CurrentCycle { get; set; }
-
-        public int NumberOfThreads { get; set; }
-        public int ID { get; set; }
-
-        public ArgsToWorker(int id, List<EShock> shocks, int numberOfCycles, int numberOfThreads)
-        {
-            Shocks = new(shocks);
-            NumberOfCycles = numberOfCycles;
-            NumberOfThreads = numberOfThreads;
-            ID = id;
-            CurrentCycle = 0;
-        }
-    }
 }

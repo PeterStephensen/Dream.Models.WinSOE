@@ -27,6 +27,7 @@ namespace Dream.Models.WinSOE
         double _takeOut;
         int _age = 0;
         double _kappa;
+        bool _initialized = false;
         #endregion
 
         #region Constructor
@@ -93,6 +94,48 @@ namespace Dream.Models.WinSOE
                 double kappa = _settings.InvestorWealthIncomeRatioTarget;
                 double xi = _settings.InvestorMPCIncome;
                 double eta = _settings.InvestorMPCWealth;
+
+                if(!_initialized)
+                {
+                    _wealth = kappa * _statistics.HouseholdWealth;
+                    _permanentIncome = _statistics.TotalProfit;
+                    _initialized = true;
+                }
+                
+                _income = _statistics.TotalProfit;
+                _permanentIncome = gamma * _permanentIncome + (1 - gamma) * _income;
+
+                _wealthTarget = kappa * _statistics.HouseholdWealth;
+
+                _takeOut = 0;
+                //if (_age >= _settings.InvestorBuildUpPeriods)
+                if (_time.Now >= _settings.InvestorBuildUpPeriods)
+                {                   
+                    
+                    // Buffe-stock                                                            
+                    _takeOut = _permanentIncome + xi * (_income - _permanentIncome)
+                                                             + eta * (_wealth - _wealthTarget);
+
+                    //if (_takeOut < 0) _takeOut = 0;  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                }
+
+                _wealth = _wealth + _income - _takeOut;
+
+                _age++;
+
+            }
+
+
+        }
+        public void Iterate_OLD()
+        {
+            if (Active)
+            {
+                // See "Behavoristisk Buffer-Stock-husholdning (v0.4)"
+                double gamma = _settings.InvestorSmoothIncome;
+                double kappa = _settings.InvestorWealthIncomeRatioTarget;
+                double xi = _settings.InvestorMPCIncome;
+                double eta = _settings.InvestorMPCWealth;
                 //double r = _statistics.PublicInterestRate;
                 double r = 0;
 
@@ -100,7 +143,7 @@ namespace Dream.Models.WinSOE
                 _permanentIncome = gamma * _permanentIncome + (1 - gamma) * _income;
 
                 //_wealthTarget = kappa * _permanentIncome;
-                _wealthTarget = kappa * _statistics.PublicHouseholdWealth;
+                _wealthTarget = kappa * _statistics.HouseholdWealth;
                 //_wealthTarget = 0.1 * _statistics.PublicHouseholdWealth;
 
                 _takeOut = 0;
@@ -108,31 +151,32 @@ namespace Dream.Models.WinSOE
                 {
 
                     // Buffe-stock 
-                    double x_bar = _settings.InvestorShareOfPermanentIncome;
-                                                            
-                    _takeOut = r * _wealth + x_bar * _permanentIncome + xi * (_income - x_bar * _permanentIncome)
-                                                             + eta * (_wealth - _wealthTarget);
+                    //double x_bar = _settings.InvestorShareOfPermanentIncome;
 
-                    if (_takeOut < 0) _takeOut = 0;
+                    //_takeOut = r * _wealth + x_bar * _permanentIncome + xi * (_income - x_bar * _permanentIncome)
+                    //                                         + eta * (_wealth - _wealthTarget);
 
-                    if ((1 + r) * _wealth + _income < 0) // Finansial Crises
-                        _takeOut = (1 + r) * _wealth + _income; // Bail Out
-                    else if (_takeOut > (1 + r) * _wealth + _income)
-                        _takeOut = (1 + r) * _wealth + _income;
+                    //if (_takeOut < 0) _takeOut = 0;
+
+                    //if ((1 + r) * _wealth + _income < 0) // Finansial Crises
+                    //    _takeOut = (1 + r) * _wealth + _income; // Bail Out
+                    //else if (_takeOut > (1 + r) * _wealth + _income)
+                    //    _takeOut = (1 + r) * _wealth + _income;
 
                     _takeOut = _income;  //!!!!!!!!!!!!!!!!!!!!!
                 }
 
                 //_wealth = (1 + r) * _wealth + _income - _takeOut;
+
+
+
                 _wealth = 0; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                _wealthTarget = 0;
+                _permanentIncome = 0;
 
                 _age++;
 
             }
-
-
-
-
 
         }
         #endregion

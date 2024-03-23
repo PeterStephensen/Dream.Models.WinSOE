@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-
-using Dream.AgentClass;
+﻿using Dream.AgentClass;
 using Dream.IO;
 
 namespace Dream.Models.WinSOE
@@ -29,6 +22,7 @@ namespace Dream.Models.WinSOE
         Forecaster _forecaster;
         double _nFirmNewTotal = 0;
         double[] _nFirmNew;
+        double[][] _nFirmNewHistory;
         Dictionary<int, Firm> _firmDict;
         Agents<Firm>[] _sectorList = null;
         Firm[] _randomFirm = null;
@@ -37,14 +31,18 @@ namespace Dream.Models.WinSOE
         DateTime _t0;
         WinFormElements _winFormElements;
         bool _baseRun;
+        double _investorProfitSensitivity;
         #endregion
 
-        #region Constructors
-        //public Simulation(Settings settings, Time time, WinFormElements winFormElements, bool baseRun)
         public Simulation(Settings settings, Time time, WinFormElements winFormElements)
         {
+            //if (_instance != null)
+            //    throw new Exception("Simulation object is singleton");
+
             _settings = settings;
             _time = time;
+
+#if WIN_APP
 
             // Hand shake with UI
             _winFormElements = winFormElements;
@@ -56,6 +54,7 @@ namespace Dream.Models.WinSOE
             }
             else
                 _winFormElements.MainFormUI.Simulation = this;
+#endif
 
 
             if (_settings.RandomSeed > 0)
@@ -72,31 +71,19 @@ namespace Dream.Models.WinSOE
                 Agent.RandomSeed = _seed;
             }
 
-            //if (_settings.SaveScenario & _settings.Shock!=EShock.Nothing)
-            //{
-            //    string scnPath = _settings.ROutputDir + "\\scenario_info.txt";
-            //    using (StreamReader sr = File.OpenText(scnPath))
-            //    {
-            //        sr.ReadLine();                          // Read first line
-            //        _seed = Int32.Parse(sr.ReadLine());  // Seed on second line
-
-            //        _random = new(_seed);                    // Overwrite _random with seeded 
-            //        Agent.RandomSeed = _seed;
-
-            //    }
-            //}
-            
+            _nFirmNewHistory = new double[(1 + _settings.EndYear-_settings.StartYear)*_settings.PeriodsPerYear][];
+            for(int i = 0; i < _nFirmNewHistory.Length; i++)
+                _nFirmNewHistory[i] = new double[_settings.NumberOfSectors];   
+           
             _settings.RandomSeed = _seed; // Save the seed in the settings so that it is saved in the json-file 
 
-            //if (_instance != null)
-            //    throw new Exception("Simulation object is singleton");
 
             _instance = this;
 
             _statistics = new Statistics();
             _publicSector = new PublicSector(); // Not used
             _forecaster = new Forecaster();     // Not used
-            _investor = new Investor(0,0);
+            _investor = new Investor(_settings.InvestorInitialWealth,0);
             _households = new Agents<Household>();
             _tools = new Agents<Agent>();
 
@@ -182,15 +169,12 @@ namespace Dream.Models.WinSOE
             EventProc(Event.System.Start);
 
         }
-        #endregion
 
-        #region EventProc()
         public override void EventProc(int idEvent)
         {
             switch (idEvent)
             {
                 case Event.System.Start:
-                    #region Event.System.Start
                     base.EventProc(idEvent);
                     // Event pump
                     do
@@ -205,25 +189,22 @@ namespace Dream.Models.WinSOE
                         foreach (Agent firms in _sectors)
                             firms.RandomizeAgents();
 
-                        if (testCancel())
-                            break;
+                        if (!_settings.SaveScenario)
+                            if (testCancel())
+                                break;
 
                     } while (_time.NextPeriod());
 
                     _t0 = DateTime.Now;
                     this.EventProc(Event.System.Stop);
                     break;
-                    #endregion
 
                 case Event.System.PeriodStart:
-                    #region Event.System.PeriodStart
-
-
                     _statistics.Communicate(EStatistics.FirmNew, _nFirmNewTotal);
                     
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
-                        Console.WriteLine("***************************************** Time per year: {0}", DateTime.Now - _t0);
+                        Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now/12, DateTime.Now - _t0);
                         _t0 = DateTime.Now;
                     }
 
@@ -243,54 +224,37 @@ namespace Dream.Models.WinSOE
 
                     base.EventProc(idEvent);
                     break;
-                    #endregion
 
                 case Event.System.PeriodEnd:
-                    #region Event.System.PeriodEnd
                     base.EventProc(idEvent);
                     // New households
                     for (int i = 0; i < _settings.HouseholdNewBorn; i++)
                         _households += new Household();
 
-
-                    if(_time.Now==_settings.BurnInPeriod2)
-                    {
-                        _investor.Active = true;
-                        _settings.HouseholdProfitShare = 0;
-                    }
-
-                    if (_time.Now > _settings.BurnInPeriod2 & _time.Now < _settings.BurnInPeriod3)
-                        _settings.HouseholdProfitShare += 1.0 / (_settings.BurnInPeriod3 - _settings.BurnInPeriod2);
-
-
-                    // Shock: 10% stigning i arbejdsudbud 
-                    if (_time.Now == _settings.ShockPeriod)
-                    {
-                        if(_settings.Shock==EShock.LaborSupply)
-                            for (int i = 0; i < 0.1 * _households.Count; i++)
-                                _households += new Household();
-                    }
+                    _investorProfitSensitivity = _settings.InvestorProfitSensitivity;
+                    if (_time.Now < _settings.BurnInPeriod3)
+                        _investorProfitSensitivity = _settings.InvestorProfitSensitivityBurnIn;
 
                     // After burn-in-stuff    
                     if (_time.Now == _settings.BurnInPeriod1)
                     {
-                        //_settings.FirmDefaultProbability = 1.0 / (40 * 12);  // Expectet default age: 40 years
-                        _settings.FirmDefaultProbability = 0; //!!!!!!!!!!!!!!!!!!!!
                         _settings.FirmStartNewFirms = true;
                         _settings.FirmStartupPeriod = 6;
                         _settings.FirmStartupEmployment = 10;  
                     }
-                    
-                    //PSP
-                    //if (_time.Now == _settings.BurnInPeriod2)
-                    //{
-                    //    _settings.FirmWageMarkup = 0.1;
-                    //    _settings.FirmPriceMarkdown = 0.1;
 
-                    //}
-
+                    // Shock: 10% stigning i arbejdsudbud 
+                    if (_time.Now == _settings.ShockPeriod)
+                    {
+                        if (_settings.Shock == EShock.LaborSupply)
+                            for (int i = 0; i < 0.1 * _households.Count; i++)
+                                _households += new Household();
+                    }
 
                     // Investor
+                    if (_time.Now == _settings.BurnInPeriod3)
+                        _investor.Active = true;
+
                     if (_settings.FirmStartNewFirms)
                     {
 
@@ -298,12 +262,14 @@ namespace Dream.Models.WinSOE
                             _nFirmNewTotal = _settings.InvestorInitialInflow;
                         else
                         {
-                            _nFirmNewTotal += _settings.InvestorProfitSensitivity * _statistics.PublicExpectedSharpRatioTotal * _nFirmNewTotal;
+                            _nFirmNewTotal += _investorProfitSensitivity * 
+                               _statistics.ExpectedSharpRatioTotal * _nFirmNewTotal;
+                            
                             if (_nFirmNewTotal<0)
                                 _nFirmNewTotal = 0;
-
                         }
-
+                       
+                        
                         if (_nFirmNewTotal > 0)
                         {
                             if (_time.Now < _settings.BurnInPeriod2)
@@ -314,34 +280,34 @@ namespace Dream.Models.WinSOE
                                     // Random sector
                                     int sector = _random.Next(_settings.NumberOfSectors);                                    
                                     _sectorList[sector] += new Firm(sector);
-
                                 }
                             }
                             else  // If multiple sectors
                             {
-                                //int z = 0;
-                                //if (_time.Now > 12 * 30)
-                                //        z++;
-
-                                double kappa = 0.5;
+                                
+                                double kappa = 0.5;  //0.5
 
                                 double sum = 0;
                                 for (int i = 0; i < _settings.NumberOfSectors; i++)
-                                    sum += _nFirmNew[i] * Math.Exp(kappa * (_statistics.PublicExpectedSharpRatio[i] - _statistics.PublicExpectedSharpRatioTotal));
+                                    sum += _nFirmNew[i] * Math.Exp(kappa * (_statistics.ExpectedSharpRatio[i] - _statistics.ExpectedSharpRatioTotal));
 
                                 for (int i = 0; i < _settings.NumberOfSectors; i++)
                                 {
+                                    double dd = _nFirmNew[i];
                                     double d = _nFirmNewTotal * _nFirmNew[i] *
-                                        Math.Exp(kappa * (_statistics.PublicExpectedSharpRatio[i] - _statistics.PublicExpectedSharpRatioTotal)) / sum;
+                                        Math.Exp(kappa * (_statistics.ExpectedSharpRatio[i] - _statistics.ExpectedSharpRatioTotal)) / sum;
                                     _nFirmNew[i] = _random.NextInteger(d);
+                                    
                                     for (int j = 0; j < (int)_nFirmNew[i]; j++)
                                         _sectorList[i] += new Firm(i);
-                                }                               
+
+                                    _nFirmNewHistory[_time.Now][i] = _nFirmNew[i];
+                                }
+
                             }
                         }
                     }                   
                     break;
-                    #endregion
 
                 case Event.System.Stop:
                     base.EventProc(idEvent);
@@ -352,11 +318,9 @@ namespace Dream.Models.WinSOE
                     break;
             }
         }
-        #endregion
 
         #region Internal methods
         #region GetRandom..
-        #region GetRandomHousehold
         public Household GetRandomHousehold()
         {
             if (_randomHousehold != null)
@@ -376,9 +340,6 @@ namespace Dream.Models.WinSOE
             return _randomHousehold;
         }
 
-        #endregion
-
-        #region GetRandomHouseholds
         public Household[] GetRandomHouseholds(int n)
         {
             if (n < 1) return null;
@@ -389,8 +350,6 @@ namespace Dream.Models.WinSOE
 
             return lst;
         }
-
-        #endregion
 
         #region GetRandomFirmsFromHouseholds
         /// <summary>
@@ -426,7 +385,7 @@ namespace Dream.Models.WinSOE
         /// <param name="n">Number of firms</param>
         /// <returns>Array<Firm></returns>
         /// <returns></returns>
-        public Firm[] GetRandomFirmsFromHouseholdsEmployment(int n)
+        public Firm[] GetRandomFirmsFromEmployedHouseholds(int n)
         {
             if (n < 1) return null;
 
@@ -580,7 +539,6 @@ namespace Dream.Models.WinSOE
         #endregion
         #endregion
 
-        #region GetFirmFromID()
         public Firm GetFirmFromID(int ID)
         {
             if(_firmDict!=null)
@@ -597,11 +555,9 @@ namespace Dream.Models.WinSOE
 
             return null;
         }
-        #endregion
-
-        #region testCancel()
         bool testCancel()
         {
+#if WIN_APP
             if(_winFormElements!=null)
             {
                 if (_winFormElements.MainFormUI.backgroundWorker.CancellationPending == true)
@@ -611,11 +567,18 @@ namespace Dream.Models.WinSOE
                     return true;
                 }
             }
+#endif
             return false;
 
         }
-        #endregion
-        #endregion
+
+        public void ShockNow(EShock shock, double shockSize)
+        {
+            _settings.Shock = shock;
+            _settings.ShockSize = shockSize;
+            _settings.ShockPeriod = _time.Now+1;
+        }
+#endregion
 
         #region Public properties
         public Agents<Firm> Sector(int sector)
@@ -693,7 +656,36 @@ namespace Dream.Models.WinSOE
         {
             get { return _winFormElements; }
         }
+        /// <summary>
+        /// Historic data on new firms
+        /// </summary>
+        public double[][] NFirmNewHist
+        {
+            get { return _nFirmNewHistory; }
+        }
+
         #endregion
+
+        #region Text
+        // Fase 1: Markedsfase 
+        // 	 Fast antal virksomheder
+        // 	 Voksende antal husholdninger (for speed)
+        // 	 Initiale husholdninger har arbejde - men skal selv finde handelssted
+        // 	 Nye husholdninger er aktive på arbdejds- og varemarked
+        // 	 Profit betales ikke til husholdninger
+        // 	
+        // Fase 2:
+        // 	 Virksomheder lukker hvis de giver underskud
+        // 	 Konstant inflow af nye virksomheder
+        // 	
+        // Fase 3:
+        // 	 Investor bliver aktiv: Profit betales til husholdninger (hvis positiv)
+        // 	 Investor vælger antal nye virksomheder (eksogen rente)
+        //
+        // Fase 4:
+        //   Fri kørsel: endogen rente
+        #endregion
+
 
     }
 }
