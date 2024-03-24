@@ -760,14 +760,12 @@ namespace Dream.Models.WinSOE
                     else
                     {
                         mainFormUI = _simulation.WinFormElements.MainFormUI;
-                        if(mainFormUI.NeedHistogramData & _time.Now % 6==0)
-                        {
-                            collectMicroData();
-                        }
                         
-                        //if (_time.Now % _settings.UIChartUpdateInterval == 0)
                         if(_time.Now==_nextUIChartUpdateTime)
                         {
+                            if (mainFormUI.NeedMicroData & _time.Now % 1 == 0)
+                                collectMicroData();
+
                             _chartData.Wait = 0;
                             while (mainFormUI.Busy)
                             {
@@ -780,9 +778,7 @@ namespace Dream.Models.WinSOE
 
                         }
                         else
-                        {
                             mainFormUI.backgroundWorker.ReportProgress(_time.Now);
-                        }
                     }
 
 #endif

@@ -28,20 +28,35 @@
         /// </summary>
         private void InitializeComponent()
         {
+            labelMicroDataPeriod = new Label();
             SuspendLayout();
+            // 
+            // labelMicroDataPeriod
+            // 
+            labelMicroDataPeriod.AutoSize = true;
+            labelMicroDataPeriod.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelMicroDataPeriod.Location = new Point(39, 3);
+            labelMicroDataPeriod.Name = "labelMicroDataPeriod";
+            labelMicroDataPeriod.Size = new Size(38, 13);
+            labelMicroDataPeriod.TabIndex = 0;
+            labelMicroDataPeriod.Text = "label1";
             // 
             // HistogramForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(labelMicroDataPeriod);
             Name = "HistogramForm";
             StartPosition = FormStartPosition.Manual;
-            Text = "Histograms";
+            Text = "Micro data";
             KeyUp += HistogramForm_KeyUp;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
+
+        private Label labelMicroDataPeriod;
     }
 }

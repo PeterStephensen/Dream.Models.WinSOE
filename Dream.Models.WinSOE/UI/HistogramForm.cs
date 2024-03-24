@@ -23,6 +23,8 @@ namespace Dream.Models.WinSOE.UI
 
             this.KeyPreview = true;
 
+            labelMicroDataPeriod.Text = "";
+
             Paint += new PaintEventHandler(histograms_Paint);
 
             _formsPlot = new ScottPlot.FormsPlot[9];
@@ -100,7 +102,7 @@ namespace Dream.Models.WinSOE.UI
         {
 
             double mn, mx;
-            int nBins = 25;
+            int nBins = 50;
 
 
             //----------------------------------------------
@@ -248,7 +250,9 @@ namespace Dream.Models.WinSOE.UI
             _formsPlot[6].Render();
             _formsPlot[7].Render();
 
-            MainFormUI.MainFormUIInstance.Focus();
+            int now = MainFormUI.Instance.Simulation.Time.Now;
+            Text = "Micro data: month/year = " + now.ToString() + "/" + (now/12).ToString();
+            MainFormUI.Instance.Focus();
 
         }
 
@@ -260,16 +264,16 @@ namespace Dream.Models.WinSOE.UI
                 if(this.Visible)
                 {
                     this.Hide();
-                    MainFormUI.MainFormUIInstance.Show();
+                    MainFormUI.Instance.Show();
                     Thread.Sleep(10);
-                    MainFormUI.MainFormUIInstance.Invalidate();
+                    MainFormUI.Instance.Invalidate();
                 }
                 else
                     this.Show();
                 return;
             }
 
-            MainFormUI.MainFormUIInstance.MainFormUI_KeyUp(sender, e);
+            MainFormUI.Instance.MainFormUI_KeyUp(sender, e);
 
         }
     }

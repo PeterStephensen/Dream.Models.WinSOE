@@ -11,7 +11,7 @@ namespace Dream.Models.WinSOE
 {
     public partial class MainFormUI : Form
     {
-        public static MainFormUI MainFormUIInstance;
+        public static MainFormUI Instance;
         
         #region Private fields
         ScottPlot.FormsPlot[] _formsPlot;
@@ -67,7 +67,7 @@ namespace Dream.Models.WinSOE
             InitializeComponentHomeMade();
             InitializePlots();
             _tmpFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            MainFormUIInstance = this;
+            Instance = this;
 
         }
         private void InitializeComponentHomeMade()
@@ -1139,7 +1139,7 @@ namespace Dream.Models.WinSOE
 
         }
 
-        public bool NeedHistogramData
+        public bool NeedMicroData
         {
             get { return _histogramFormsVisible; }
         }

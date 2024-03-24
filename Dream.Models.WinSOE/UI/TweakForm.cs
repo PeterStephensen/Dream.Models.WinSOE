@@ -227,7 +227,7 @@ namespace Dream.Models.WinSOE
             Keys[] arrowKeys = { Keys.Up, Keys.Down, Keys.Left, Keys.Right };
             
             if(!arrowKeys.Contains(e.KeyCode))
-                MainFormUI.MainFormUIInstance.MainFormUI_KeyUp(sender, e);
+                MainFormUI.Instance.MainFormUI_KeyUp(sender, e);
         }
 
         public Simulation Simulation
