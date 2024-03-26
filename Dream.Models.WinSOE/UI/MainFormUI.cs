@@ -1164,11 +1164,11 @@ namespace Dream.Models.WinSOE
             Inheritance, Extra;
 
         public int Wait;
-        public MicroData HistogramData;
+        public MicroData MicroData;
 
         public ChartData(int n)
         {
-            HistogramData = new MicroData();
+            MicroData = new MicroData();
             
             nFirms = new double[n];
             NewFirms = new double[n];
@@ -1213,7 +1213,7 @@ namespace Dream.Models.WinSOE
     }
     public class MicroData
     {
-        public double[] Productivity, Profit, Production, Age, Employment;
+        public double[] Productivity, Profit, Production, Age, Employment, Price, Wage;
         public int Wait;
     }
 

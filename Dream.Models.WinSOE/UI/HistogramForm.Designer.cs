@@ -1,5 +1,6 @@
 ﻿namespace Dream.Models.WinSOE.UI
 {
+#if WIN_APP
     partial class HistogramForm
     {
         /// <summary>
@@ -59,4 +60,5 @@
 
         private Label labelMicroDataPeriod;
     }
+#endif
 }

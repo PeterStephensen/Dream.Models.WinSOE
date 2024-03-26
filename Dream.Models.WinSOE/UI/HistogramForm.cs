@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace Dream.Models.WinSOE.UI
 {
+#if WIN_APP
     public partial class HistogramForm : Form
     {
         #region Private fields
@@ -76,7 +77,6 @@ namespace Dream.Models.WinSOE.UI
             _formsPlot[7].Location = new Point(margin + 2 * width, top + 1 * heigth);
             _formsPlot[8].Location = new Point(margin + 2 * width, top + 2 * heigth);
 
-
             //_formsPlot[i].Location = new Point(10, 10 + i * 100);
             //_formsPlot[i].Size = new Size(400, 80);
             //_formsPlot[i].BackColor = Color.White;
@@ -106,7 +106,7 @@ namespace Dream.Models.WinSOE.UI
 
 
             //----------------------------------------------
-            double[] data = chartData.HistogramData.Productivity;
+            double[] data = chartData.MicroData.Productivity;
             if (data == null || data.Length == 0)
                 return;
 
@@ -122,7 +122,7 @@ namespace Dream.Models.WinSOE.UI
             bar.BarWidth = 0.7 * mx / nBins;
 
             //----------------------------------------------
-            data = chartData.HistogramData.Profit;
+            data = chartData.MicroData.Profit;
             if (data == null || data.Length == 0)
                 return;
 
@@ -140,11 +140,11 @@ namespace Dream.Models.WinSOE.UI
 
 
             //----------------------------------------------
-            double[] data1 = chartData.HistogramData.Productivity;
+            double[] data1 = chartData.MicroData.Productivity;
             if (data1 == null || data1.Length == 0)
                 return;
 
-            double[] data2 = chartData.HistogramData.Profit;
+            double[] data2 = chartData.MicroData.Profit;
             if (data2 == null || data2.Length == 0)
                 return;
 
@@ -158,7 +158,7 @@ namespace Dream.Models.WinSOE.UI
             _formsPlot[2].Plot.YLabel("Profit");
 
             //----------------------------------------------
-            data = chartData.HistogramData.Production;
+            data = chartData.MicroData.Production;
             if (data == null || data.Length == 0)
                 return;
 
@@ -175,11 +175,11 @@ namespace Dream.Models.WinSOE.UI
             bar.BarWidth = 0.7 * mx / nBins;
 
             //----------------------------------------------
-            data1 = chartData.HistogramData.Productivity;
+            data1 = chartData.MicroData.Productivity;
             if (data1 == null || data1.Length == 0)
                 return;
 
-            data2 = chartData.HistogramData.Production;
+            data2 = chartData.MicroData.Production;
             if (data2 == null || data2.Length == 0)
                 return;
 
@@ -190,54 +190,117 @@ namespace Dream.Models.WinSOE.UI
             _formsPlot[4].Plot.YLabel("Production");
 
             //----------------------------------------------
-            data = chartData.HistogramData.Age;
-            if (data == null || data.Length == 0)
-                return;
+            //data = chartData.MicroData.Age;
+            //if (data == null || data.Length == 0)
+            //    return;
 
-            mn = data.Min();
-            mx = data.Max();
-            //mn = -50;
-            //mx = 75;
-            if(mn<mx)
-            {
-                hist = new(min: mn, max: mx, binCount: nBins);
-                hist.AddRange(data);
+            //mn = data.Min();
+            //mx = data.Max();
+            ////mn = -50;
+            ////mx = 75;
+            //if(mn<mx)
+            //{
+            //    hist = new(min: mn, max: mx, binCount: nBins);
+            //    hist.AddRange(data);
 
-                _formsPlot[5].Plot.Clear();
-                _formsPlot[5].Plot.Title("Age");
-                bar = _formsPlot[5].Plot.AddBar(values: hist.Counts, positions: hist.Bins);
-                bar.BarWidth = 0.7 * mx / nBins;
+            //    _formsPlot[5].Plot.Clear();
+            //    _formsPlot[5].Plot.Title("Age");
+            //    bar = _formsPlot[5].Plot.AddBar(values: hist.Counts, positions: hist.Bins);
+            //    bar.BarWidth = 0.7 * mx / nBins;
 
-            }
+            //}
 
             //----------------------------------------------
-            data1 = chartData.HistogramData.Productivity;
+            data1 = chartData.MicroData.Productivity;
             if (data1 == null || data1.Length == 0)
                 return;
 
-            data2 = chartData.HistogramData.Age;
+            data2 = chartData.MicroData.Age;
+            if (data2 == null || data2.Length == 0)
+                return;
+
+            _formsPlot[5].Plot.Clear();
+            _formsPlot[5].Plot.AddScatter(data1, data2, lineWidth: 0, markerSize: 3);
+            _formsPlot[5].Plot.SetAxisLimits(0, 8, 0, 75);
+            _formsPlot[5].Plot.XLabel("Productivity");
+            _formsPlot[5].Plot.YLabel("Age");
+            //----------------------------------------------
+            data1 = chartData.MicroData.Productivity;
+            if (data1 == null || data1.Length == 0)
+                return;
+
+            data2 = chartData.MicroData.Employment;
             if (data2 == null || data2.Length == 0)
                 return;
 
             _formsPlot[6].Plot.Clear();
             _formsPlot[6].Plot.AddScatter(data1, data2, lineWidth: 0, markerSize: 3);
-            _formsPlot[6].Plot.SetAxisLimits(0, 8, 0, 75);
+            _formsPlot[6].Plot.SetAxisLimits(0, 8, 0, 150);
             _formsPlot[6].Plot.XLabel("Productivity");
-            _formsPlot[6].Plot.YLabel("Age");
+            _formsPlot[6].Plot.YLabel("Employment");
+
             //----------------------------------------------
-            data1 = chartData.HistogramData.Productivity;
+            data1 = chartData.MicroData.Price;
             if (data1 == null || data1.Length == 0)
                 return;
 
-            data2 = chartData.HistogramData.Employment;
+            data2 = chartData.MicroData.Wage;
             if (data2 == null || data2.Length == 0)
                 return;
 
             _formsPlot[7].Plot.Clear();
             _formsPlot[7].Plot.AddScatter(data1, data2, lineWidth: 0, markerSize: 3);
-            _formsPlot[7].Plot.SetAxisLimits(0, 8, 0, 150);
-            _formsPlot[7].Plot.XLabel("Productivity");
-            _formsPlot[7].Plot.YLabel("Employment");
+            _formsPlot[7].Plot.SetAxisLimits(0.9, 1.1, 0.9, 1.1);
+            _formsPlot[7].Plot.XLabel("Price");
+            _formsPlot[7].Plot.YLabel("Wage");
+            //----------------------------------------------
+            data1 = chartData.MicroData.Productivity;
+            if (data1 == null || data1.Length == 0)
+                return;
+
+            data2 = chartData.MicroData.Wage;
+            if (data2 == null || data2.Length == 0)
+                return;
+
+            _formsPlot[8].Plot.Clear();
+            _formsPlot[8].Plot.AddScatter(data1, data2, lineWidth: 0, markerSize: 3);
+            _formsPlot[8].Plot.SetAxisLimits(0, 8, 0.9, 1.1);
+            _formsPlot[8].Plot.XLabel("Productivity");
+            _formsPlot[8].Plot.YLabel("Price");
+
+            //----------------------------------------------
+            //data = chartData.MicroData.Price;
+            //if (data == null || data.Length == 0)
+            //    return;
+
+            ////mn = data.Min();
+            ////mx = data.Max();
+            //mn = 0.85;
+            //mx = 1.15;
+            //hist = new(min: mn, max: mx, binCount: nBins);
+            //hist.AddRange(data);
+
+            //_formsPlot[7].Plot.Clear();
+            //_formsPlot[7].Plot.Title("Price");
+            //bar = _formsPlot[7].Plot.AddBar(values: hist.Counts, positions: hist.Bins);
+            //bar.BarWidth = 0.7 * (mx-mn) / nBins;
+
+            ////----------------------------------------------
+            //data = chartData.MicroData.Wage;
+            //if (data == null || data.Length == 0)
+            //    return;
+
+            ////mn = data.Min();
+            ////mx = data.Max();
+            //mn = 0.85;
+            //mx = 1.15;
+            //hist = new(min: mn, max: mx, binCount: nBins);
+            //hist.AddRange(data);
+
+            //_formsPlot[8].Plot.Clear();
+            //_formsPlot[8].Plot.Title("Wage");
+            //bar = _formsPlot[8].Plot.AddBar(values: hist.Counts, positions: hist.Bins);
+            //bar.BarWidth = 0.7 * (mx - mn) / nBins;
 
             //----------------------------------------------
 
@@ -249,6 +312,7 @@ namespace Dream.Models.WinSOE.UI
             _formsPlot[5].Render();
             _formsPlot[6].Render();
             _formsPlot[7].Render();
+            _formsPlot[8].Render();
 
             int now = MainFormUI.Instance.Simulation.Time.Now;
             Text = "Micro data: month/year = " + now.ToString() + "/" + (now/12).ToString();
@@ -277,4 +341,5 @@ namespace Dream.Models.WinSOE.UI
 
         }
     }
+#endif
 }

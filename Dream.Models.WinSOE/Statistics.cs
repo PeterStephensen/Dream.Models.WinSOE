@@ -1005,6 +1005,7 @@ namespace Dream.Models.WinSOE
 
         #region Internal methods
 
+#if WIN_APP
         void collectMicroData()
         { 
 
@@ -1013,6 +1014,8 @@ namespace Dream.Models.WinSOE
             List<double> production = new();
             List<double> age = new();
             List<double> employment = new();
+            List<double> price = new();
+            List<double> wage = new();
             double corr = Math.Pow(1 + _growthPerPeriod, _time.Now);
 
             for (int i = 0; i < _settings.NumberOfSectors; i++)
@@ -1023,15 +1026,20 @@ namespace Dream.Models.WinSOE
                     profit.Add(f.Profit / _marketPriceTotal / corr);
                     age.Add(1.0 * f.Age / 12);
                     employment.Add(f.Employment);
+                    price.Add(f.Price / _marketPriceTotal);
+                    wage.Add(f.Wage / _marketWageTotal);
                 }
 
-            _chartData.HistogramData.Productivity = productivity.ToArray();
-            _chartData.HistogramData.Profit = profit.ToArray();
-            _chartData.HistogramData.Production = production.ToArray();
-            _chartData.HistogramData.Age = age.ToArray();
-            _chartData.HistogramData.Employment = employment.ToArray();
+            _chartData.MicroData.Productivity = productivity.ToArray();
+            _chartData.MicroData.Profit = profit.ToArray();
+            _chartData.MicroData.Production = production.ToArray();
+            _chartData.MicroData.Age = age.ToArray();
+            _chartData.MicroData.Employment = employment.ToArray();
+            _chartData.MicroData.Price = price.ToArray();
+            _chartData.MicroData.Wage = wage.ToArray();
 
         }
+#endif
         void Write()
         {
             _fileDBStatistics.WriteLineTab(_expSharpeRatioTotal, _settings.MacroProductivity, _marketPrice, _marketWage);

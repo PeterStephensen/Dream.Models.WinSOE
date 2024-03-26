@@ -224,7 +224,7 @@ namespace Dream.Models.WinSOE
             {
                 //settings.Shock = EShock.Productivity;
                 //settings.Shock = EShock.Tsunami;
-                settings.ShockSize = 0.2;
+                settings.ShockSize = 0.1;
                 settings.ShockPeriod = 1400 * 12;
             }
 
