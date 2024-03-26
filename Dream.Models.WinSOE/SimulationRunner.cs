@@ -179,6 +179,7 @@ namespace Dream.Models.WinSOE
 
             settings.StatisticsExpectedSharpeRatioSmooth = 0.95; //0.7   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
+#if !LINUX_APP
             if (Environment.MachineName == "C1709161") // PSP's gamle maskine
             {
                 settings.ROutputDir = @"C:\test\Dream.AgentBased.MacroModel";
@@ -203,6 +204,12 @@ namespace Dream.Models.WinSOE
                 settings.ROutputDir = @"H:\AgentBased\SOE\Output";
                 settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.3\bin\x64\R.exe";
             }
+#endif
+
+#if LINUX_APP
+            settings.ROutputDir = @"~\Projects\Output";
+            settings.RExe = "";           
+#endif
 
             // Time and random seed           
             settings.StartYear = 0; 
