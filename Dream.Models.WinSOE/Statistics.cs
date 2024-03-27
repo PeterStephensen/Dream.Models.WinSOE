@@ -1065,7 +1065,7 @@ namespace Dream.Models.WinSOE
 #if !LINUX_APP            
             return _settings.ROutputDir + "\\" + fileName;
 #else
-            return _settings.ROutputDir + "//" + fileName;
+            return _settings.ROutputDir + "/" + fileName;
 #endif
         }
         void OpenFiles()
@@ -1131,10 +1131,10 @@ namespace Dream.Models.WinSOE
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Sectors");
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Settings");
 #else
-                    Directory.CreateDirectory(_settings.ROutputDir + "//Scenarios");
-                    Directory.CreateDirectory(_settings.ROutputDir + "//Scenarios//Macro");
-                    Directory.CreateDirectory(_settings.ROutputDir + "//Scenarios//Sectors");
-                    Directory.CreateDirectory(_settings.ROutputDir + "//Scenarios//Settings");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Macro");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Sectors");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Settings");
 #endif
                 }
 
@@ -1149,9 +1149,9 @@ namespace Dream.Models.WinSOE
                     sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + seed + "_" + Environment.MachineName + ".txt";
                     settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + seed + "_" + Environment.MachineName + ".json";
 #else
-                    macroPath = _settings.ROutputDir + "//Scenarios//Macro//base_" + seed + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "//Scenarios//Sectors//base_" + seed + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "//Scenarios//Settings//base_" + seed + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.ROutputDir + "/Scenarios/Macro/base_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/base_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "/Scenarios/Settings/base_" + seed + "_" + Environment.MachineName + ".json";
 #endif
                 }
                 else //Counterfactual
@@ -1165,9 +1165,9 @@ namespace Dream.Models.WinSOE
                     sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
                     settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
 #else
-                    macroPath = _settings.ROutputDir + "//Scenarios//Macro//count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "//Scenarios//Sectors//count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "//Scenarios//Settings//count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.ROutputDir + "/Scenarios/Macro/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "/Scenarios/Settings/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
 #endif
 
                 }
