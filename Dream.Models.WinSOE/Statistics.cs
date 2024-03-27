@@ -1207,19 +1207,15 @@ namespace Dream.Models.WinSOE
         }
         void WriteAvrFile(int n)
         {
+#if WIN_APP
             //Write file with average over the last n opservations
-#if !LINUX_APP            
             string path = _settings.ROutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
-#else
-            string path = _settings.ROutputDir + "/Avr/avr" + _settings.RandomSeed.ToString() + ".txt";
-#endif
       
             if(File.Exists(path)) File.Delete(path); //Delete if same random seed
 
             using (StreamWriter sw = File.CreateText(path))
             {
                 sw.WriteLine("nFirms\tnHouseholds\tSales\tRealWage\tPrice\tConsumption\tProduction\tSharpeRatio\tUnemploymentRate\tConsumptionLoss\tStock\tWealth\tEmployment\tProfitPerWealthUnit\tInterestRate\tInflation\tRealWageInflation\tExtra");
-#if WIN_APP
                 sw.WriteLineTab(_chartData.nFirms.Last(n).Average(),
                                 _chartData.nHouseholds.Last(n).Average(),
                                 _chartData.Sales.Last(n).Average(),
@@ -1239,10 +1235,10 @@ namespace Dream.Models.WinSOE
                                 _chartData.RealWageInflation.Last(n).Average(),
                                 _chartData.Extra.Last(n).Average()
                                );
-#endif
-            }
         }
-#endregion
+#endif
+    }
+        #endregion
 
         #region Public proporties
         public double[] MarketWage
