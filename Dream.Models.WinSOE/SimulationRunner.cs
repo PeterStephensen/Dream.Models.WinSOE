@@ -204,6 +204,7 @@ namespace Dream.Models.WinSOE
                 //settings.RExe = @"C:\Program Files\R\R-4.2.3\bin\R.exe";
             }
 
+
             if (Environment.MachineName == "VDI00316") // Fjernskrivebord
             {
                 settings.ROutputDir = @"C:\Users\B007566\Documents\Output";
