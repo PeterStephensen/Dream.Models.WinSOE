@@ -1059,12 +1059,21 @@ namespace Dream.Models.WinSOE
             //            Thread.Sleep(100);
 
         }
+        
+        string Path(string fileName)
+        {
+#if !LINUX_APP            
+            return _settings.ROutputDir + "\\" + fileName;
+#else
+            return _settings.ROutputDir + "/" + fileName;
+#endif
+        }
         void OpenFiles()
         {
             if (!_settings.SaveScenario)
             {
 
-                string path = _settings.ROutputDir + "\\data_year.txt";
+                string path = Path("data_year.txt");
                 if (File.Exists(path)) File.Delete(path);
                 using (StreamWriter sw = File.CreateText(path))
                     sw.WriteLine("Year\tPeriod\tn_Households\tavr_productivity\tnUnemployed\tnOptimalEmplotment\tP_star\tnEmployment\tnVacancies\tWage\tPrice\t" +
@@ -1074,12 +1083,12 @@ namespace Dream.Models.WinSOE
                         "nChangeShopInBuyFromShopNull\tnChangeShopInBuyFromShopLookingForGoods\tnCouldNotFindFirmWithGoods\tnBuyFromShop\tnSuccesfullTrade\t" +
                         "nZeroBudget\tnSuccesfullTradeNonZero");
 
-                path = _settings.ROutputDir + "\\sector_year.txt";
+                path = Path("sector_year.txt");
                 if (File.Exists(path)) File.Delete(path);
                 using (StreamWriter sw = File.CreateText(path))
                     sw.WriteLine("Time\tSector\tPrice\tWage\tEmployment\tProduction\tSales\tnFirm\texpSharpeRatio\texpSharpeRatioTotal"); 
 
-                path = _settings.ROutputDir + "\\firm_reports.txt"; 
+                path = Path("\\firm_reports.txt"); 
                 if (File.Exists(path)) File.Delete(path);
                 _fileFirmReport = File.CreateText(path);
                 _fileFirmReport.WriteLine("Time\tID\tProductivity\tEmployment\tProduction\tSales\tVacancies\tExpectedPrice\tExpectedWage\tPrice\tWage\tApplications" +
@@ -1087,39 +1096,45 @@ namespace Dream.Models.WinSOE
                     "\tMarketWage\tExpectedPotentialSales\tExpectedEmployment\tEmploymentMarkup\tRelativeTargetPrice\tRelativeTargetWage\tExpectedVacancies\tAge\tStock\tFirerings" +
                     "\tNewEmployment\tRelativeWage\tRelativePrice");
 
-                path = _settings.ROutputDir + "\\applications.txt";
+                path = Path("applications.txt");
                 if (File.Exists(path)) File.Delete(path);
                 _fileFirmApplications = File.CreateText(path);
                 _fileFirmApplications.WriteLine("Time\tID\tProductivity");
 
 
-                path = _settings.ROutputDir + "\\household_reports.txt";
+                path = Path("household_reports.txt");
                 if (File.Exists(path)) File.Delete(path);
                 _fileHouseholdReport = File.CreateText(path);
                 _fileHouseholdReport.WriteLine("Time\tID\tProductivity\tAge\tConsumption\tValConsumption\tIncome\tWealth\tWage" +
                     "\tP_macro\tConsumptionBudget\tPermanentIncome\tWealthTarget\tSearchJobOnJob\tSearchJobUnemployed\tUnemployed" +
                     "\tUnempDuration\tReservationWage");
 
-                path = _settings.ROutputDir + "\\output.txt";
+                path = Path("output.txt");
                 if (!File.Exists(path))
                     using (StreamWriter sw = File.CreateText(path))
                         sw.WriteLine("n_firms\tPrice\tWage\tDiscountedProfits");
 
             }
 
-            string macroPath = _settings.ROutputDir + "\\macro.txt";
-            string sectorsPath = _settings.ROutputDir + "\\sectors.txt";
-            string settingsPath = _settings.ROutputDir + "\\settings.json";
+            string macroPath = Path("macro.txt");
+            string sectorsPath = Path("sectors.txt");
+            string settingsPath = Path("settings.json");
 
             #region Scenario-stuff
             if (_settings.SaveScenario)
             {
                 if(_settings.NewScenarioDirs)
                 {
+#if !LINUX_APP
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios");
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Macro");
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Sectors");
                     Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Settings");
+#else
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Macro");
+                    Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Sectors");
+#endif
                 }
 
                 string scnPath = _settings.ROutputDir + "\\scenario_info.txt";
@@ -1128,10 +1143,15 @@ namespace Dream.Models.WinSOE
 
                     string seed = _settings.RandomSeed.ToString();
 
+#if !LINUX_APP
                     macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\base_" + seed + "_" + Environment.MachineName + ".txt";
                     sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + seed + "_" + Environment.MachineName + ".txt";
                     settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + seed + "_" + Environment.MachineName + ".json";
-
+#else
+                    macroPath = _settings.ROutputDir + "/Scenarios/Macro/base_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/base_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "/Scenarios/Settings/base_" + seed + "_" + Environment.MachineName + ".json";
+#endif
                 }
                 else //Counterfactual
                 {
@@ -1139,14 +1159,19 @@ namespace Dream.Models.WinSOE
                     _runName = _settings.Shock.ToString();
                     string seed = _settings.RandomSeed.ToString();
 
+#if !LINUX_APP                    
                     macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
                     sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
                     settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
-
+#else
+                    macroPath = _settings.ROutputDir + "/Scenarios/Macro/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.ROutputDir + "/Scenarios/Settings/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
+#endif
 
                 }
             }
-            #endregion
+#endregion
 
             if (File.Exists(macroPath)) File.Delete(macroPath);
             _fileMacro = File.CreateText(macroPath);
@@ -1182,7 +1207,12 @@ namespace Dream.Models.WinSOE
         void WriteAvrFile(int n)
         {
             //Write file with average over the last n opservations
+#if !LINUX_APP            
             string path = _settings.ROutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
+#else
+            string path = _settings.ROutputDir + "/Avr/avr" + _settings.RandomSeed.ToString() + ".txt";
+#endif
+      
             if(File.Exists(path)) File.Delete(path); //Delete if same random seed
 
             using (StreamWriter sw = File.CreateText(path))

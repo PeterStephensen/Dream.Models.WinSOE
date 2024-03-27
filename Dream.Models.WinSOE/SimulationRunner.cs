@@ -216,10 +216,8 @@ namespace Dream.Models.WinSOE
                 settings.ROutputDir = @"H:\AgentBased\SOE\Output";
                 settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.3\bin\x64\R.exe";
             }
-#endif
-
-#if LINUX_APP
-            settings.ROutputDir = @"~\Projects\Output";
+#else
+            settings.ROutputDir = "dpdream\home\dpetste\Projects\Output";
             settings.RExe = "";           
 #endif
 
