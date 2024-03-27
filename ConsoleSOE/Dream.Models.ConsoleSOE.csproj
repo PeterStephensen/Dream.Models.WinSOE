@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+      <!--Home made Constants-->
+    <DefineConstants>NWIN_APP, NLINUX_APP</DefineConstants>
+
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Dream.Models.WinSOE\AgentTemplate.cs" Link="AgentTemplate.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\ECommunicate.cs" Link="ECommunicate.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Event.cs" Link="Event.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Extensions.cs" Link="Extensions.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Firm.cs" Link="Firm.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Forecaster.cs" Link="Forecaster.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Household.cs" Link="Household.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Investor.cs" Link="Investor.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\PublicSector.cs" Link="PublicSector.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Settings.cs" Link="Settings.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Simulation.cs" Link="Simulation.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\SimulationRunner.cs" Link="SimulationRunner.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Statistics.cs" Link="Statistics.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\Time.cs" Link="Time.cs" />
+    <Compile Include="..\Dream.Models.WinSOE\TweakableAttribute.cs" Link="TweakableAttribute.cs" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Dream.AgentClass\Dream.AgentClass.csproj" />
+		<ProjectReference Include="..\Dream.IO\Dream.IO.csproj" />
+	</ItemGroup>
+
+
+</Project>

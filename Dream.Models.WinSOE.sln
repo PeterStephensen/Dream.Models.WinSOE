@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dream.AgentClass", "Dream.A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dream.IO", "Dream.IO\Dream.IO.csproj", "{88D7F539-0F5D-4CE1-88CE-A5EB8502662A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dream.Models.ConsoleSOE", "ConsoleSOE\Dream.Models.ConsoleSOE.csproj", "{91203296-80C9-4274-AAE0-85CFB30857A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{88D7F539-0F5D-4CE1-88CE-A5EB8502662A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88D7F539-0F5D-4CE1-88CE-A5EB8502662A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88D7F539-0F5D-4CE1-88CE-A5EB8502662A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91203296-80C9-4274-AAE0-85CFB30857A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91203296-80C9-4274-AAE0-85CFB30857A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91203296-80C9-4274-AAE0-85CFB30857A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91203296-80C9-4274-AAE0-85CFB30857A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

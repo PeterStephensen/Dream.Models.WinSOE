@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+#if WIN_APP
 using Dream.Models.WinSOE.UI;
+#endif
 
 namespace Dream.Models.WinSOE
 {
@@ -24,6 +26,13 @@ namespace Dream.Models.WinSOE
     }
     #endregion
 
+#if !WIN_APP
+    //Dummy implementation
+    public class ArgsToWorker
+    {
+    }
+#endif
+
     public class SimulationRunner
     {
         public SimulationRunner(bool saveScenario = false, WinFormElements? winFormElements = null,
@@ -32,7 +41,10 @@ namespace Dream.Models.WinSOE
            
             Settings settings = new();
             settings.SaveScenario = saveScenario;
+
             ArgsToWorker? argsToWorker = null;
+
+
             if(saveScenario)
             {
                 settings.Shock = shock;
