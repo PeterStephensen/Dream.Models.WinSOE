@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
-
 
 #if WIN_APP
 using ScottPlot;

@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>false</UseWindowsForms>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 	  
 	  <!--Home made Constants-->
-	  <DefineConstants>NWIN_APP, NLINUX_APP</DefineConstants>
+	  <DefineConstants>WIN_APP, NLINUX_APP</DefineConstants>
   
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ScottPlot.WinForms" Version="4.1.64" />
+	  <PackageReference Include="ScottPlot.WinForms" Version="4.1.64" />  
   </ItemGroup>
-
+	
   <ItemGroup>
     <ProjectReference Include="..\Dream.AgentClass\Dream.AgentClass.csproj" />
     <ProjectReference Include="..\Dream.IO\Dream.IO.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
