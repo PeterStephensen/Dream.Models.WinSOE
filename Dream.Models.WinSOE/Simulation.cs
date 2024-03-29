@@ -32,6 +32,7 @@ namespace Dream.Models.WinSOE
         WinFormElements _winFormElements;
         bool _baseRun;
         double _investorProfitSensitivity;
+        double _shockSign = 1;
         #endregion
 
         public Simulation(Settings settings, Time time, WinFormElements winFormElements)
@@ -247,7 +248,7 @@ namespace Dream.Models.WinSOE
                     if (_time.Now == _settings.ShockPeriod)
                     {
                         if (_settings.Shock == EShock.LaborSupply)
-                            for (int i = 0; i < 0.1 * _households.Count; i++)
+                            for (int i = 0; i < _settings.ShockSize * _households.Count; i++)
                                 _households += new Household();
                     }
 
@@ -571,13 +572,17 @@ namespace Dream.Models.WinSOE
             return false;
 
         }
-
-        public void ShockNow(EShock shock, double shockSize)
+        public void ShockNow(EShock shock, double shockSign=1)
         {
             _settings.Shock = shock;
-            _settings.ShockSize = shockSize;
+            _shockSign = shockSign;
             _settings.ShockPeriod = _time.Now+1;
         }
+        public void ResetShockSign()
+        {
+            _shockSign = 1;
+        }
+
 #endregion
 
         #region Public properties
@@ -585,85 +590,61 @@ namespace Dream.Models.WinSOE
         {
             return _sectorList[sector];
         }
-
         public Settings Settings
         {
             get { return _settings; }
             set { _settings = value; }
         }
-
         public Investor Investor { get { return _investor; } }
-
         public Random Random
         {
             get { return _random; }
         }
-        /// <summary>
-        /// Seed used to initialize the Random object
-        /// </summary>
         public int Seed
         {
             get { return _seed; }
         }
-
         public Time Time
         {
             get { return _time; }
         }
-
-
         public static Simulation Instance
         {
             get { return _instance; }
         }
-
-        /// <summary>
-        /// Groups
-        /// </summary>
         public Agents<Household> Households
         {
             get { return _households; }
         }
-
-        //public Agents<Firm> Firms
-        //{
-        //    get { return _firms; }
-        //}
-
-
         public Statistics Statistics
         {
             get { return _statistics; }
         }
-
         public PublicSector PublicSector
         {
             get { return _publicSector; }
         }
-
         public Forecaster Forecaster
         {
             get { return _forecaster; }
         }
-
         public Agents<Agent> Tools
         {
             get { return _tools; }
             //set { _tools = value; }
         }
-
         public WinFormElements WinFormElements
         {
             get { return _winFormElements; }
         }
-        /// <summary>
-        /// Historic data on new firms
-        /// </summary>
         public double[][] NFirmNewHist
         {
             get { return _nFirmNewHistory; }
         }
-
+        public double ShockSign
+        {
+            get { return _shockSign; }
+        }
         #endregion
 
         #region Text

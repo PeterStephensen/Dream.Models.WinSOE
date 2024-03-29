@@ -789,17 +789,25 @@ namespace Dream.Models.WinSOE
                     if (_time.Now == _settings.ShockPeriod)
                     {
                         if (_settings.Shock == EShock.Productivity)
-                            _settings.MacroProductivity *= (1 + _settings.ShockSize);
+                        {
+                            _settings.MacroProductivity *= (1 + _simulation.ShockSign * _settings.ShockSize);
+                            _simulation.ResetShockSign();
+
+                        }
 
                         if (_settings.Shock == EShock.ProductivityAR1)
                         {
-                            _shockSizeAbs = _settings.ShockSize * _settings.MacroProductivity;
+                            _shockSizeAbs = _simulation.ShockSign * _settings.ShockSize * _settings.MacroProductivity;
+                            _simulation.ResetShockSign();
                             _macroProductivity0 = _settings.MacroProductivity;
                             _settings.MacroProductivity = _macroProductivity0 + _shockSizeAbs;
                         }
 
                         if (_settings.Shock == EShock.ProductivitySector0)
-                            _sectorProductivity[0] = 1.1;
+                        {
+                            _sectorProductivity[0] = 1 + _simulation.ShockSign * _settings.ShockSize;
+                            _simulation.ResetShockSign();
+                        }
 
                     }
                     if (_time.Now > _settings.ShockPeriod)
@@ -824,15 +832,12 @@ namespace Dream.Models.WinSOE
                                             _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, 
                                             _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock);
 
-                    //_fileMacro.Flush();
-
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
                     {
                         _fileSectors.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, i,
                         _marketPrice[i], _marketWage[i], _marketPriceTotal, _marketWageTotal, _employment[i], _production[i],
                         _sales[i], _expSharpeRatio[i], _simulation.Sector(i).Count);
                     }                    
-                    //_fileSectors.Flush();
 
                     _nFirmCloseNatural = 0;
                     _nFirmCloseTooBig = 0;
@@ -1208,6 +1213,7 @@ namespace Dream.Models.WinSOE
         void WriteAvrFile(int n)
         {
 #if WIN_APP
+
             //Write file with average over the last n opservations
             string path = _settings.ROutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
       

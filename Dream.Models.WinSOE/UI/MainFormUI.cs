@@ -424,17 +424,17 @@ namespace Dream.Models.WinSOE
 
                 case Keys.D1:
                     labelMainText.Text = "Positive productivity shock";
-                    _simulation.ShockNow(EShock.Productivity, _settings.ShockSize);
+                    _simulation.ShockNow(EShock.Productivity);
                     break;
 
                 case Keys.D2:
                     labelMainText.Text = "Positive AR1 productivity shock";
-                    _simulation.ShockNow(EShock.ProductivityAR1, _settings.ShockSize);
+                    _simulation.ShockNow(EShock.ProductivityAR1);
                     break;
 
                 case Keys.D3:
                     labelMainText.Text = "Tsunami shock";
-                    _simulation.ShockNow(EShock.Tsunami, _settings.ShockSize);
+                    _simulation.ShockNow(EShock.Tsunami);
                     break;
 
                 case Keys.Up:
@@ -533,12 +533,12 @@ namespace Dream.Models.WinSOE
                 {
                     case Keys.D1:
                         labelMainText.Text = "Negative productivity shock";
-                        _simulation.ShockNow(EShock.Productivity, -_settings.ShockSize);
+                        _simulation.ShockNow(EShock.Productivity, -1);
                         break;
 
                     case Keys.D2:
                         labelMainText.Text = "Negative AR1 productivity shock";
-                        _simulation.ShockNow(EShock.ProductivityAR1, -_settings.ShockSize);
+                        _simulation.ShockNow(EShock.ProductivityAR1, -1);
                         break;
 
                     default:

@@ -8,6 +8,8 @@
 
       <!--Home made Constants-->
     <DefineConstants>NWIN_APP, NLINUX_APP</DefineConstants>
+	<PublishSingleFile>true</PublishSingleFile>
+	  <PublishRelease>true</PublishRelease>
 
 
   </PropertyGroup>
