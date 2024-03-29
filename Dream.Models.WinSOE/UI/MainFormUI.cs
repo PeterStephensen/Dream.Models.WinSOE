@@ -9,8 +9,7 @@ namespace Dream.Models.WinSOE
 {
     public partial class MainFormUI : Form
     {
-        public static MainFormUI Instance;
-        
+        public static MainFormUI Instance;        
         #region Private fields
         ScottPlot.FormsPlot[] _formsPlot;
         DateTime _t0, _t_year;
@@ -415,26 +414,53 @@ namespace Dream.Models.WinSOE
             switch (e.KeyCode)
             {
                 case Keys.F5:
-                    Run();
+                    if (!Running)
+                        Run();
                     break;
 
                 case Keys.F7:
-                    OpenScenariosForm();
+                    if (!Running)
+                        OpenScenariosForm();
                     break;
 
                 case Keys.D1:
-                    labelMainText.Text = "Positive productivity shock";
-                    _simulation.ShockNow(EShock.Productivity);
+                    if(Running)
+                    {
+                        if(!e.Control)
+                        {
+                            labelMainText.Text = "Positive productivity shock";
+                            _simulation.ShockNow(EShock.Productivity);
+                        }
+                        else
+                        {
+                            labelMainText.Text = "Negative productivity shock";
+                            _simulation.ShockNow(EShock.Productivity, -1);
+                        }
+                    }                    
                     break;
 
                 case Keys.D2:
-                    labelMainText.Text = "Positive AR1 productivity shock";
-                    _simulation.ShockNow(EShock.ProductivityAR1);
+                    if(Running)
+                    {
+                        if (!e.Control)
+                        {
+                            labelMainText.Text = "Positive AR1 productivity shock";
+                            _simulation.ShockNow(EShock.ProductivityAR1);
+                        }
+                        else
+                        {
+                            labelMainText.Text = "Negative AR1 productivity shock";
+                            _simulation.ShockNow(EShock.ProductivityAR1, -1);
+                        }
+                    }
                     break;
 
                 case Keys.D3:
-                    labelMainText.Text = "Tsunami shock";
-                    _simulation.ShockNow(EShock.Tsunami);
+                    if(Running)
+                    {
+                        labelMainText.Text = "Tsunami shock";
+                        _simulation.ShockNow(EShock.Tsunami);
+                    }
                     break;
 
                 case Keys.Up:
@@ -443,6 +469,8 @@ namespace Dream.Models.WinSOE
                     labelMainTextSub.Text = "Time window scaled " +
                         (Math.Round(100 * _UIChartTimeWindowShare)).ToString() + " percentage (" +
                         (_settings.UIChartTimeWindow / 12).ToString("#.#") + " years)";
+                    if(Pause)
+                        plotCharts(_chartData, _settings.UIChartTimeWindow);
                     break;
 
                 case Keys.Down:
@@ -453,12 +481,15 @@ namespace Dream.Models.WinSOE
                     labelMainTextSub.Text = "Time window scaled " +
                         (Math.Round(100 * _UIChartTimeWindowShare)).ToString() + " percentage (" +
                         (_settings.UIChartTimeWindow / 12).ToString("#.#") + " years)";
+                    if (Pause)
+                        plotCharts(_chartData, _settings.UIChartTimeWindow);
                     break;
 
                 case Keys.Left:
                     if (Pause)
                     {
-                        _x_max -= 12 * 10;
+                        double step = e.Control ? 0.01 : 0.1;
+                        _x_max -= (int)(step * _settings.UIChartTimeWindow);
                         plotCharts(_chartData, _settings.UIChartTimeWindow, _x_max);
                     }
                     break;
@@ -466,7 +497,8 @@ namespace Dream.Models.WinSOE
                 case Keys.Right:
                     if (Pause)
                     {
-                        _x_max += 12 * 10;
+                        double step = e.Control ? 0.01 : 0.1;
+                        _x_max += (int)(step * _settings.UIChartTimeWindow);
                         plotCharts(_chartData, _settings.UIChartTimeWindow, _x_max);
                     }
                     break;
@@ -485,7 +517,11 @@ namespace Dream.Models.WinSOE
 
                 case Keys.X:
                     if (Running)
+                    { 
                         backgroundWorker.CancelAsync();
+                        if(Pause)
+                            Pause = !Pause;
+                    }
                     else
                         Application.Exit();
                     break;
@@ -499,7 +535,6 @@ namespace Dream.Models.WinSOE
                     if (Running)
                         openHistogramForm();
                     break;
-
 
                 case Keys.PageDown:
                     if (Running)
@@ -525,25 +560,6 @@ namespace Dream.Models.WinSOE
 
                 default:
                     break;
-            }
-
-            if (e.Control)
-            {
-                switch (e.KeyCode)
-                {
-                    case Keys.D1:
-                        labelMainText.Text = "Negative productivity shock";
-                        _simulation.ShockNow(EShock.Productivity, -1);
-                        break;
-
-                    case Keys.D2:
-                        labelMainText.Text = "Negative AR1 productivity shock";
-                        _simulation.ShockNow(EShock.ProductivityAR1, -1);
-                        break;
-
-                    default:
-                        break;
-                }
             }
         }
         private void runModelF5ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1137,18 +1153,16 @@ namespace Dream.Models.WinSOE
 
         }
 
+        #region Public fields
         public bool NeedMicroData
         {
             get { return _histogramFormsVisible; }
         }
-
         public ChartData ChartData
         {
             get { return _chartData; }
         }
-
-
-
+        #endregion
     }
     public class ChartData
     {
