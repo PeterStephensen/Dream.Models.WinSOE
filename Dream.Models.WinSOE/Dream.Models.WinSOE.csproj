@@ -7,11 +7,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 	  
-	  <!--Home made Constants-->
-	  <DefineConstants>WIN_APP, NLINUX_APP</DefineConstants>
-	  <PublishSingleFile>true</PublishSingleFile>
-	  <PublishRelease>true</PublishRelease>
-
+	<!--Home made Constants-->
+	<DefineConstants>WIN_APP, NLINUX_APP</DefineConstants>
+	<PublishSingleFile>true</PublishSingleFile>
+	<PublishRelease>true</PublishRelease>
+  
   </PropertyGroup>
 
   <ItemGroup>
