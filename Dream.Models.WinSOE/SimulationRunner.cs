@@ -36,7 +36,7 @@ namespace Dream.Models.WinSOE
     public class SimulationRunner
     {
         public SimulationRunner(bool saveScenario = false, WinFormElements? winFormElements = null,
-                                EShock shock = EShock.Base, int seed = -1, ArgsToWorker? atw=null)
+                                EShock shock = EShock.Base, int seed = -1, ArgsToWorker? atw=null, string outputDir="")
         {
            
             Settings settings = new();
@@ -191,37 +191,45 @@ namespace Dream.Models.WinSOE
 
             settings.StatisticsExpectedSharpeRatioSmooth = 0.95; //0.7   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
+
+            if(outputDir=="")
+            {
 #if !LINUX_APP
-            if (Environment.MachineName == "C1709161") // PSP's gamle maskine
-            {
-                settings.ROutputDir = @"C:\test\Dream.AgentBased.MacroModel";
-                settings.RExe = @"C:\Program Files\R\R-4.0.3\bin\x64\R.exe";
-            }
-            if (Environment.MachineName == "C2210098") // PSP's nye maskine
-            {
-                settings.ROutputDir = @"C:\Users\B007566\Documents\Output";
-                settings.RExe = @"C:\Program Files\R\R-4.3.0\bin\x64\R.exe";
-                //settings.RExe = @"C:\Program Files\R\R-4.2.3\bin\R.exe";
-            }
+                if (Environment.MachineName == "C1709161") // PSP's gamle maskine
+                {
+                    settings.OutputDir = @"C:\test\Dream.AgentBased.MacroModel";
+                    settings.RExe = @"C:\Program Files\R\R-4.0.3\bin\x64\R.exe";
+                }
+                if (Environment.MachineName == "C2210098") // PSP's nye maskine
+                {
+                    settings.OutputDir = @"C:\Users\B007566\Documents\Output";
+                    settings.RExe = @"C:\Program Files\R\R-4.3.0\bin\x64\R.exe";
+                    //settings.RExe = @"C:\Program Files\R\R-4.2.3\bin\R.exe";
+                }
 
 
-            if (Environment.MachineName == "VDI00316") // Fjernskrivebord
-            {
-                settings.ROutputDir = @"C:\Users\B007566\Documents\Output";
-                settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.2\bin\x64\R.exe";
-            }
+                if (Environment.MachineName == "VDI00316") // Fjernskrivebord
+                {
+                    settings.OutputDir = @"C:\Users\B007566\Documents\Output";
+                    settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.2\bin\x64\R.exe";
+                }
 
-            if (Environment.MachineName == "VDI00382") // Fjernskrivebord til Agentbased projekt
-            {
-                //settings.ROutputDir = @"C:\Users\B007566\Documents\Output";
-                settings.ROutputDir = @"H:\AgentBased\SOE\Output";
-                settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.3\bin\x64\R.exe";
-            }
+                if (Environment.MachineName == "VDI00382") // Fjernskrivebord til Agentbased projekt
+                {
+                    //settings.ROutputDir = @"C:\Users\B007566\Documents\Output";
+                    settings.OutputDir = @"H:\AgentBased\SOE\Output";
+                    settings.RExe = @"C:\Users\B007566\Documents\R\R-4.1.3\bin\x64\R.exe";
+                }
 #else
-            settings.ROutputDir = "/dpdream/home/dpetste/Projects/Output";
+            settings.OutputDir = "/dpdream/home/dpetste/Projects/Output";
             settings.RExe = "";           
 #endif
-
+            }
+            else
+            {
+                settings.OutputDir = outputDir;
+            }
+            
             // Time and random seed           
             settings.StartYear = 0; 
             settings.EndYear = 1300;  //300         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      

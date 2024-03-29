@@ -6,24 +6,20 @@ namespace ConsoleSOE
     {
         static void Main(string[] args)
         {
-#if WIN_APP
-            ApplicationConfiguration.Initialize();
-            Application.Run(new MainFormUI());
-#endif
 
-#if !WIN_APP
-            var t0 = DateTime.Now;
-
+            string outputDir = "";
+            if(args.Length > 0)
+            {
+                outputDir = args[0];
+            }
+            
             int seed = (new Random()).Next();
 
-            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Base,
-                            seed: seed, atw: null);
+            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Base, seed: seed, atw: null, outputDir);
 
-            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Productivity,
-                            seed: seed, atw: null);
+            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Productivity, seed: seed, atw: null, outputDir);
 
-            Console.WriteLine("Time used: {0}", DateTime.Now - t0);
-#endif
+            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Tsunami, seed: seed, atw: null, outputDir);
 
 
         }

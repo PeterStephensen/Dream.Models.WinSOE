@@ -118,7 +118,7 @@ namespace Dream.Models.WinSOE
                 Console.WriteLine("LoadDatabase..");
 
 
-                TabFileReader file = new TabFileReader(_settings.ROutputDir + "\\db_firms.txt");
+                TabFileReader file = new TabFileReader(_settings.OutputDir + "\\db_firms.txt");
 
                 _firmDict = new();
                 
@@ -131,7 +131,7 @@ namespace Dream.Models.WinSOE
                 }
                 file.Close();
 
-                file = new TabFileReader(_settings.ROutputDir + "\\db_households.txt");
+                file = new TabFileReader(_settings.OutputDir + "\\db_households.txt");
 
                 while (file.ReadLine())
                     _households += new Household(file);

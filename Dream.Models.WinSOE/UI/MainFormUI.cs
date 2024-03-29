@@ -582,7 +582,7 @@ namespace Dream.Models.WinSOE
             using (Bitmap bmp = new Bitmap(this.Width, this.Height))
             {
                 this.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size));
-                bmp.Save(_simulation.Settings.ROutputDir + "\\Graphics\\" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "sceenshot.bmp", ImageFormat.Bmp); // make sure path exists!
+                bmp.Save(_simulation.Settings.OutputDir + "\\Graphics\\" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "sceenshot.bmp", ImageFormat.Bmp); // make sure path exists!
             }
 
             //IFormatter formatter = new BinaryFormatter();

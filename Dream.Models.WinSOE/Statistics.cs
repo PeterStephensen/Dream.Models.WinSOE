@@ -151,7 +151,7 @@ namespace Dream.Models.WinSOE
 
             if (_settings.LoadDatabase)
             {
-                TabFileReader file = new TabFileReader(_settings.ROutputDir + "\\db_statistics.txt");
+                TabFileReader file = new TabFileReader(_settings.OutputDir + "\\db_statistics.txt");
                 file.ReadLine();
 
                 //_marketPrice = file.GetDouble("marketPrice");
@@ -182,17 +182,17 @@ namespace Dream.Models.WinSOE
                     if (_time.Now == _settings.StatisticsWritePeriode)
                     {
 
-                        string path = _settings.ROutputDir + "\\db_households.txt";
+                        string path = _settings.OutputDir + "\\db_households.txt";
                         if (File.Exists(path)) File.Delete(path);
                         _fileDBHouseholds = File.CreateText(path);
                         _fileDBHouseholds.WriteLine("ID\tAge\tFirmEmploymentID\tFirmShopID\tProductivity");
 
-                        path = _settings.ROutputDir + "\\db_firms.txt";
+                        path = _settings.OutputDir + "\\db_firms.txt";
                         if (File.Exists(path)) File.Delete(path);
                         _fileDBFirms = File.CreateText(path);
                         _fileDBFirms.WriteLine("ID\tAge\tphi0\texpPrice\texpWage\texpQuitters\texpApplications\texpPotentialSales\texpSales\tw\tp\tSales\tProfit");
 
-                        path = _settings.ROutputDir + "\\db_statistics.txt";
+                        path = _settings.OutputDir + "\\db_statistics.txt";
                         if (File.Exists(path)) File.Delete(path);
                         _fileDBStatistics = File.CreateText(path);
                         _fileDBStatistics.WriteLine("expSharpeRatio\tmacroProductivity\tmarketPrice\tmarketWage");
@@ -575,7 +575,7 @@ namespace Dream.Models.WinSOE
                         {
                             double tot_opt_l = 0;// Calculate total optimal employment  
                             double prod_avr = 0; // Calculate average productivity
-                            using (StreamWriter sw = File.CreateText(_settings.ROutputDir + "\\data_firms.txt"))
+                            using (StreamWriter sw = File.CreateText(_settings.OutputDir + "\\data_firms.txt"))
                             {
 
                                 sw.WriteLine("Productivity\tOptimalEmployment\tOptimalProduction\tEmployment\tProfit\tSales\tAge\tOptimalProfit\t" +
@@ -615,7 +615,7 @@ namespace Dream.Models.WinSOE
 
                             //sw.WriteLine("Time\tSector\tPrice\tWage\tEmployment\tProduction\tSales\tExpShapeRatio\tnFirm");
 
-                            using (StreamWriter sw = File.AppendText(_settings.ROutputDir + "\\sector_year.txt"))
+                            using (StreamWriter sw = File.AppendText(_settings.OutputDir + "\\sector_year.txt"))
                             {
                                 for (int i = 0; i < _settings.NumberOfSectors; i++)
                                     sw.WriteLineTab(_time.Now, i, price[i], wage[i], employment[i], production[i], 
@@ -631,7 +631,7 @@ namespace Dream.Models.WinSOE
                             //"Sales\tProfitPerHousehold\tnFirms\tProfitPerFirm\tMeanAge\tMeanValue\tnFirmCloseNatural\tnFirmCloseNegativeProfit\tnFirmCloseTooBig\t" +
                             //"nFirmNew\tDiscountedProfits\tExpDiscountedProfits\tSharpeRatio\tExpSharpRatio\tLaborSupply\tYearConsumption\tYearEmployment");
 
-                            using (StreamWriter sw = File.AppendText(_settings.ROutputDir + "\\data_year.txt"))
+                            using (StreamWriter sw = File.AppendText(_settings.OutputDir + "\\data_year.txt"))
                             {
 
                                 
@@ -648,7 +648,7 @@ namespace Dream.Models.WinSOE
 
                             }
 
-                            using (StreamWriter sw = File.CreateText(_settings.ROutputDir + "\\data_households.txt"))
+                            using (StreamWriter sw = File.CreateText(_settings.OutputDir + "\\data_households.txt"))
                             {
                                 sw.WriteLine("UnemplDuration\tProductivity\tAge\tConsumptionValue\tConsumptionBudget\tPrice\tWage\tIncome");
                                 foreach (Household h in _simulation.Households)
@@ -661,7 +661,7 @@ namespace Dream.Models.WinSOE
 
                             //RunRScript("..\\..\\..\\R\\graphs.R");
                             //Console.WriteLine("Running R..");
-                            RunRScript(_settings.ROutputDir + "\\graphs.R");
+                            RunRScript(_settings.OutputDir + "\\graphs.R");
 
                         }
                     #endregion
@@ -1068,7 +1068,7 @@ namespace Dream.Models.WinSOE
         string Path(string fileName)
         {
 #if !LINUX_APP            
-            return _settings.ROutputDir + "\\" + fileName;
+            return _settings.OutputDir + "\\" + fileName;
 #else
             return _settings.ROutputDir + "/" + fileName;
 #endif
@@ -1131,10 +1131,10 @@ namespace Dream.Models.WinSOE
                 if(_settings.NewScenarioDirs)
                 {
 #if !LINUX_APP
-                    Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios");
-                    Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Macro");
-                    Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Sectors");
-                    Directory.CreateDirectory(_settings.ROutputDir + "\\Scenarios\\Settings");
+                    Directory.CreateDirectory(_settings.OutputDir + "\\Scenarios");
+                    Directory.CreateDirectory(_settings.OutputDir + "\\Scenarios\\Macro");
+                    Directory.CreateDirectory(_settings.OutputDir + "\\Scenarios\\Sectors");
+                    Directory.CreateDirectory(_settings.OutputDir + "\\Scenarios\\Settings");
 #else
                     Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios");
                     Directory.CreateDirectory(_settings.ROutputDir + "/Scenarios/Macro");
@@ -1143,16 +1143,16 @@ namespace Dream.Models.WinSOE
 #endif
                 }
 
-                string scnPath = _settings.ROutputDir + "\\scenario_info.txt";
+                string scnPath = _settings.OutputDir + "\\scenario_info.txt";
                 if (_settings.Shock == EShock.Base) // Base run
                 {
 
                     string seed = _settings.RandomSeed.ToString();
 
 #if !LINUX_APP
-                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\base_" + seed + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\base_" + seed + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\base_" + seed + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.OutputDir + "\\Scenarios\\Macro\\base_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.OutputDir + "\\Scenarios\\Sectors\\base_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.OutputDir + "\\Scenarios\\Settings\\base_" + seed + "_" + Environment.MachineName + ".json";
 #else
                     macroPath = _settings.ROutputDir + "/Scenarios/Macro/base_" + seed + "_" + Environment.MachineName + ".txt";
                     sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/base_" + seed + "_" + Environment.MachineName + ".txt";
@@ -1166,9 +1166,9 @@ namespace Dream.Models.WinSOE
                     string seed = _settings.RandomSeed.ToString();
 
 #if !LINUX_APP                    
-                    macroPath = _settings.ROutputDir + "\\Scenarios\\Macro\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
-                    sectorsPath = _settings.ROutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
-                    settingsPath = _settings.ROutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
+                    macroPath = _settings.OutputDir + "\\Scenarios\\Macro\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    sectorsPath = _settings.OutputDir + "\\Scenarios\\Sectors\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
+                    settingsPath = _settings.OutputDir + "\\Scenarios\\Settings\\count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".json";
 #else
                     macroPath = _settings.ROutputDir + "/Scenarios/Macro/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
                     sectorsPath = _settings.ROutputDir + "/Scenarios/Sectors/count_" + _runName + "_" + seed + "_" + Environment.MachineName + ".txt";
@@ -1215,7 +1215,7 @@ namespace Dream.Models.WinSOE
 #if WIN_APP
 
             //Write file with average over the last n opservations
-            string path = _settings.ROutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
+            string path = _settings.OutputDir + "\\Avr\\avr" + _settings.RandomSeed.ToString() + ".txt";
       
             if(File.Exists(path)) File.Delete(path); //Delete if same random seed
 

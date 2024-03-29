@@ -552,7 +552,7 @@
         public bool LoadDatabase { get; set; } = false;
 
         public string RCodeDir { get; set; } = @"..\..\..\R";
-        public string ROutputDir { get; set; } = "";
+        public string OutputDir { get; set; } = "";
         public string RExe { get; set; } = "";
         public int IDScenario { get; set; } = 0;
         
