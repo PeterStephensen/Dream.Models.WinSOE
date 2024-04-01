@@ -20,6 +20,7 @@ namespace Dream.Models.WinSOE
         Settings _settings;
         Time _time;
         Statistics _statistics;
+
         double _income;
         double _permanentIncome;
         double _wealth=0;
@@ -28,9 +29,14 @@ namespace Dream.Models.WinSOE
         int _age = 0;
         double _kappa;
         bool _initialized = false;
+
+        double[] _sharpeRatio;
+        double[] _expectedSharpeRatio;
+        double[] _nNewFirms;
+        double[][] _nFirmNewHistory;
+        double _interestRate;
         #endregion
 
-        #region Constructor
         public Investor(double wealth, double permanentIncome)
         {
             _simulation = Simulation.Instance;
@@ -42,11 +48,16 @@ namespace Dream.Models.WinSOE
             _permanentIncome = permanentIncome;
             //_kappa = _settings.InvestorWealthIncomeRatioTarget;
 
+            _sharpeRatio = new double[_settings.NumberOfSectors];
+            _expectedSharpeRatio = new double[_settings.NumberOfSectors];
+            _nNewFirms = new double[_settings.NumberOfSectors];
+
+            _nFirmNewHistory = new double[(1 + _settings.EndYear - _settings.StartYear) * _settings.PeriodsPerYear][];
+            for (int i = 0; i < _nFirmNewHistory.Length; i++)
+                _nFirmNewHistory[i] = new double[_settings.NumberOfSectors];
 
         }
-        #endregion
 
-        #region EventProc
         public override void EventProc(int idEvent)
         {
             switch (idEvent)
@@ -69,9 +80,7 @@ namespace Dream.Models.WinSOE
                     break;
             }
         }
-        #endregion
 
-        #region Communicate
         public ECommunicate Communicate(ECommunicate comID, object o)
         {
             switch (comID)
@@ -82,9 +91,98 @@ namespace Dream.Models.WinSOE
                     return ECommunicate.Ok;
             }
         }
-        #endregion
 
-        #region Iterate()
+        public void CollectDataInStatistics()
+        {
+            // This method should be called in Statistics under Event.System.PeriodStart
+            //--------------------------------------------------------------------------------
+
+            // Interest rate - Inflation and growth corrected
+            double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
+
+            // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
+            double[] discExpProfits = new double[_settings.NumberOfSectors];   // Discounted expected profits. Used to calculate Sharp ratio
+            int[] nFirms = new int[_settings.NumberOfSectors];                 // Number of firms in sector
+            foreach (var fi in _statistics.FirmInfos)
+            {
+                double n = _nFirmNewHistory[_time.Now - fi.Age][fi.Sector];  // Number of firms started fi.Age periods ago
+                double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
+
+                discExpProfits[fi.Sector] += n > 0 ? fi.Profit * disc / n : 0;       // Discounted expected profit per new born firm
+                nFirms[fi.Sector]++;
+            }
+
+            for(int i=0; i<_settings.NumberOfSectors; i++)
+                discExpProfits[i] = discExpProfits[i] / nFirms[i];
+
+            double[] sigmaRisk = new double[_settings.NumberOfSectors];              // Risk (standard deviation) in sector
+            foreach(var fi in _statistics.FirmInfos)
+            {
+                double n = _nFirmNewHistory[_time.Now - fi.Age][fi.Sector];  // Number of firms started fi.Age periods ago
+                double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
+
+                sigmaRisk[fi.Sector] += n > 0 ? Math.Pow((fi.Profit * disc / n) - discExpProfits[fi.Sector], 2) : 0;       // Discounted expected profit per new born firm
+                //sigmaRisk[fi.Sector] = 1;
+            }
+            for (int i = 0; i < _settings.NumberOfSectors; i++) sigmaRisk[i] = Math.Sqrt(sigmaRisk[i] / nFirms[i]);
+
+            for (int i = 0; i < _settings.NumberOfSectors; i++)
+            {
+                _sharpeRatio[i] = sigmaRisk[i] > 0 ? discExpProfits[i] / sigmaRisk[i] : 0; 
+                _expectedSharpeRatio[i] = _settings.StatisticsExpectedSharpeRatioSmooth * _expectedSharpeRatio[i] + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatio[i];
+            }
+
+            Iterate();
+
+            if (_time.Now < _settings.BurnInPeriod3 | _settings.SimplificationInterestRate)
+            {
+                _interestRate = _settings.StatisticsInitialInterestRate;
+            }
+            else
+            {
+                double totWealth = 0;
+                foreach (Household h in _simulation.Households)
+                    totWealth += h.Wealth;
+
+                if (totWealth > 0)
+                    _interestRate = _simulation.Investor.TakeOut / totWealth;
+            }
+        }
+
+        public void Invest()
+        {
+            if (_time.Now < _settings.BurnInPeriod2)
+            {
+                for(int i=0; i<_settings.NumberOfSectors; i++)
+                {
+                    _nNewFirms[i] = _settings.InvestorInitialInflow;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < _settings.NumberOfSectors; i++)
+                {
+                    double investorProfitSensitivity = _settings.InvestorProfitSensitivity;
+                    if (_time.Now < _settings.BurnInPeriod3)
+                        investorProfitSensitivity = _settings.InvestorProfitSensitivityBurnIn;
+
+                    _nNewFirms[i] += investorProfitSensitivity * _expectedSharpeRatio[i] * _nNewFirms[i];
+                }
+            }
+
+            for (int i = 0; i < _settings.NumberOfSectors; i++)
+            {
+                if(_nNewFirms[i] > 0)
+                {
+                    _nFirmNewHistory[_time.Now][i] = _nNewFirms[i];
+
+                    int n = _simulation.Random.NextInteger(_nNewFirms[i]);
+                    for (int j = 0; j < n; j++)
+                        _simulation.SectorList[i] += new Firm(i);
+                }
+            }
+        }
+
         public void Iterate()
         {
             if (Active)
@@ -108,15 +206,12 @@ namespace Dream.Models.WinSOE
                 _wealthTarget = kappa * _statistics.HouseholdWealth;
 
                 _takeOut = 0;
-                //if (_age >= _settings.InvestorBuildUpPeriods)
                 if (_time.Now >= _settings.InvestorBuildUpPeriods)
                 {                   
                     
                     // Buffe-stock                                                            
                     _takeOut = _permanentIncome + xi * (_income - _permanentIncome)
                                                              + eta * (_wealth - _wealthTarget);
-
-                    //if (_takeOut < 0) _takeOut = 0;  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
 
                 _wealth = _wealth + _income - _takeOut;
@@ -127,6 +222,41 @@ namespace Dream.Models.WinSOE
 
 
         }
+
+
+        #region Public Properties
+        /// <summary>
+        /// Take out for consumption (can be negative = loan from households)
+        /// </summary>
+        public double TakeOut { get{ return _takeOut; }}
+        
+        /// <summary>
+        /// Investors buffer-stock wealth (can not be negative)
+        /// </summary>
+        public double Wealth { get { return _wealth; } }
+
+        /// <summary>
+        /// Investors buffer-stock wealth target
+        /// </summary>
+        public double WealthTarget { get { return _wealthTarget; } }
+
+        /// <summary>
+        /// Investors profit income
+        /// </summary>
+        public double Income { get { return _income; } }
+
+        public double InterestRate { get { return _interestRate; } }
+
+        /// <summary>
+        /// Investors profit income
+        /// </summary>
+        public double PermanentIncome { get { return _permanentIncome; } }
+
+        public double[] SharpeRatio { get { return _sharpeRatio; } }
+        public double[] ExpectedSharpeRatio { get { return _expectedSharpeRatio; } }
+        #endregion
+
+        #region OldStuff
         public void Iterate_OLD()
         {
             if (Active)
@@ -179,37 +309,8 @@ namespace Dream.Models.WinSOE
             }
 
         }
-        #endregion
-
-        #region Public Properties
-        /// <summary>
-        /// Take out for consumption (can be negative = loan from households)
-        /// </summary>
-        public double TakeOut { get{ return _takeOut; }}
-        
-        /// <summary>
-        /// Investors buffer-stock wealth (can not be negative)
-        /// </summary>
-        public double Wealth { get { return _wealth; } }
-
-        /// <summary>
-        /// Investors buffer-stock wealth target
-        /// </summary>
-        public double WealthTarget { get { return _wealthTarget; } }
-
-        /// <summary>
-        /// Investors profit income
-        /// </summary>
-        public double Income { get { return _income; } }
-
-        /// <summary>
-        /// Investors profit income
-        /// </summary>
-        public double PermanentIncome { get { return _permanentIncome; } }
 
         #endregion
-
-
 
 
     }

@@ -1,13 +1,14 @@
 ---------------------------------------------------------------------------------
 DOCUMENTATION
 ---------------------------------------------------------------------------------
-WaGP betyder 'With a Given Probability'
+WaGP:	'With a Given Probability'
+(...)	Info of action in other object
 
 ---------------------------------------------------------------------------------
 Firms
 ---------------------------------------------------------------------------------
 Constructor:
-	Produktivitet trækkes fra Pareto-fordeling
+	Productivity is drawn from Pareto distribution
 
 ----------
 Event.System.PeriodStart:	
@@ -24,11 +25,18 @@ Event.System.PeriodStart:
 	Initializations..
 	
 Event.Economics.Update:	
-	WaGP: Default if negativ profit (and age > FirmStartupPeriod)	
-	WaGP: Default for no reason (prob=0)
+	WaGP: Default if negativ profit (and age > FirmStartupPeriod). If default:
+		Send EStatistics.FirmCloseZeroEmployment to Statistics	
+		(In Statistics: Add firm to _firmInfo)
+	WaGP: Default for no reason (prob=0). If default:
+		Send EStatistics.FirmCloseNatural to Statistics
+		(In Statistics: Add firm to _firmInfo)
 	
 Event.System.PeriodEnd:
-	Calculate profit
+	(New firms are created in Simulation by Investor)
+	Calculate profit and: 
+		Send EStatistics.Profit to Statistics
+		(In Statistics: Add firm to _firmInfo)
 	age++
 ---------- 
 
@@ -43,7 +51,6 @@ Management()
 	Calculate _l_optimal
 	Calculate _y_optimal
 	Calculate _profit_optimal
-
 
 Marketing()
 	WaGP: Priser genberegnes på følgende måde:

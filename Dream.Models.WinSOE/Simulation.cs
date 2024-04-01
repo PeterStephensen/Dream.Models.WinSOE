@@ -201,7 +201,7 @@ namespace Dream.Models.WinSOE
                     break;
 
                 case Event.System.PeriodStart:
-                    _statistics.Communicate(EStatistics.FirmNew, _nFirmNewTotal);
+                    //_statistics.Communicate(EStatistics.FirmNew, _nFirmNewTotal);
                     
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
@@ -257,20 +257,44 @@ namespace Dream.Models.WinSOE
                         _investor.Active = true;
 
                     if (_settings.FirmStartNewFirms)
-                    {
+                        _investor.Invest();
 
+                    break;
+                    
+                    if (_settings.FirmStartNewFirms)
+                    {
                         if (_time.Now < _settings.BurnInPeriod2)
                             _nFirmNewTotal = _settings.InvestorInitialInflow;
                         else
-                        {
-                            _nFirmNewTotal += _investorProfitSensitivity * 
-                               _statistics.ExpectedSharpRatioTotal * _nFirmNewTotal;
-                            
+                        {                            
+
+                            double minRealReturn = Math.Pow(1.02, 1/12) - 1;
+                            double corr = Math.Pow(1.02, 1.0*_time.Now/12);
+
+                            //double minNewFirms = 50.0;
+                            double gamma = 0; //0.5
+                            if (_statistics.ExpectedRealInterestRate >= minRealReturn)
+                                gamma = 0.5 * Math.Pow(_statistics.ExpectedRealInterestRate - minRealReturn, 0.7);
+
+                            int zz=0;
+                            if(_time.Now>12*400)
+                            {
+                                zz = 0;
+                            }
+                                                     
+                            //if(_statistics.ExpectedRealInterestRate>=minRealReturn)
+                            //_nFirmNewTotal += 0.5 * _statistics.ExpectedSharpRatioTotal / _statistics.MarketPriceTotal / corr;
+                            _nFirmNewTotal += _investorProfitSensitivity * _statistics.ExpectedSharpRatioTotal * _nFirmNewTotal;
+                            //_nFirmNewTotal += gamma * _statistics.ExpectedSharpRatioTotal * _nFirmNewTotal;
+
+                            //if (_statistics.ExpectedRealInterestRate < minRealReturn)
+                            //    _nFirmNewTotal = 0.98 * _nFirmNewTotal;
+
                             if (_nFirmNewTotal<0)
                                 _nFirmNewTotal = 0;
+
                         }
-                       
-                        
+                                             
                         if (_nFirmNewTotal > 0)
                         {
                             if (_time.Now < _settings.BurnInPeriod2)
@@ -286,7 +310,7 @@ namespace Dream.Models.WinSOE
                             else  // If multiple sectors
                             {
                                 
-                                double kappa = 0.5;  //0.5
+                                double kappa = 0.0;  //0.5   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                                 double sum = 0;
                                 for (int i = 0; i < _settings.NumberOfSectors; i++)
@@ -298,13 +322,13 @@ namespace Dream.Models.WinSOE
                                     double d = _nFirmNewTotal * _nFirmNew[i] *
                                         Math.Exp(kappa * (_statistics.ExpectedSharpRatio[i] - _statistics.ExpectedSharpRatioTotal)) / sum;
                                     _nFirmNew[i] = _random.NextInteger(d);
-                                    
+                                    //_nFirmNew[i] = _random.NextInteger(_nFirmNewTotal);  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
                                     for (int j = 0; j < (int)_nFirmNew[i]; j++)
                                         _sectorList[i] += new Firm(i);
 
                                     _nFirmNewHistory[_time.Now][i] = _nFirmNew[i];
                                 }
-
                             }
                         }
                     }                   
@@ -645,6 +669,12 @@ namespace Dream.Models.WinSOE
         {
             get { return _shockSign; }
         }
+        public Agents<Firm>[] SectorList
+        {
+            get { return _sectorList; }
+
+        }
+
         #endregion
 
         #region Text

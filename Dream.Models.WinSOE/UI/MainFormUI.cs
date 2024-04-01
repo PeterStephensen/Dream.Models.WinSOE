@@ -40,7 +40,7 @@ namespace Dream.Models.WinSOE
         int _UIChartTimeWindow0 = 0;
         double _UIChartTimeWindowShare = 1.0;
         ChartData _chartData;
-        int _x_max;
+        int _x_max, _x_min;
 
         Color[] _cols = new Color[4];
         string[,] _colText = new string[4, 16];
@@ -470,7 +470,9 @@ namespace Dream.Models.WinSOE
                         (Math.Round(100 * _UIChartTimeWindowShare)).ToString() + " percentage (" +
                         (_settings.UIChartTimeWindow / 12).ToString("#.#") + " years)";
                     if(Pause)
-                        plotCharts(_chartData, _settings.UIChartTimeWindow);
+                    {
+                        plotCharts(_chartData, _settings.UIChartTimeWindow, x_min: _x_min);
+                    }
                     break;
 
                 case Keys.Down:
@@ -482,10 +484,12 @@ namespace Dream.Models.WinSOE
                         (Math.Round(100 * _UIChartTimeWindowShare)).ToString() + " percentage (" +
                         (_settings.UIChartTimeWindow / 12).ToString("#.#") + " years)";
                     if (Pause)
-                        plotCharts(_chartData, _settings.UIChartTimeWindow);
+                    {
+                        plotCharts(_chartData, _settings.UIChartTimeWindow, x_min: _x_min);
+                    }
                     break;
 
-                case Keys.Left:
+                case Keys.Right:
                     if (Pause)
                     {
                         double step = e.Control ? 0.01 : 0.1;
@@ -494,7 +498,7 @@ namespace Dream.Models.WinSOE
                     }
                     break;
 
-                case Keys.Right:
+                case Keys.Left:
                     if (Pause)
                     {
                         double step = e.Control ? 0.01 : 0.1;
@@ -588,7 +592,7 @@ namespace Dream.Models.WinSOE
             ChartData chartData = (ChartData)e.Result;
             
             if(_time.Now > 12*200)
-                plotCharts(chartData, x_min: 150 * 12);
+                plotCharts(chartData, x_max: _time.Now,  x_min: 150 * 12);
             else
                 plotCharts(chartData);
 
@@ -705,8 +709,14 @@ namespace Dream.Models.WinSOE
             if (x_min > 0)
                 xmin = x_min;
 
-            if (window > 0)
+            if (window > 0 & x_min==0)
                 xmin = Math.Max(0, xmax - window);
+
+            if (x_min > 0 & x_max == 0)
+                xmax = xmin + window;
+
+            _x_max = xmax;
+            _x_min = xmin;
 
             int n_charts = 16;
             string[] title = new string[_formsPlot.Count()];
@@ -845,7 +855,7 @@ namespace Dream.Models.WinSOE
 
                     }
 
-                    int[] fixedWidth = new int[] { 2, 3, 7, 8 ,9};
+                    int[] fixedWidth = new int[] { 2, 3, 7, 8 ,9}; //7
 
                     if (_simulation.Time.Now > 12 * 70 & _simulation.Time.Now < 12 * 75)
                     {

@@ -273,8 +273,8 @@ namespace Dream.Models.WinSOE
                     // Simplification: Hand-to-mouth
                     if (_settings.SimplificationConsumption)
                     {
-                        if (_time.Now > _settings.BurnInPeriod3)
-                            _income += _statistics.ProfitPerHousehold;
+                        //if (_time.Now > _settings.BurnInPeriod3)
+                        //    _income += _statistics.ProfitPerHousehold;
                         _consumption_budget = Math.Max(_income + 0.1 * _wealth, 0.0);
                     }
 

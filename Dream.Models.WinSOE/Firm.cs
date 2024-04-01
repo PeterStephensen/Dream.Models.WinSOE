@@ -129,28 +129,26 @@ namespace Dream.Models.WinSOE
 
             _w = _statistics.MarketWage[_sector];
             _p = _statistics.MarketPrice[_sector];
-            _l_markup = _settings.FirmEmploymentMarkup;           
+            _l_markup = _settings.FirmEmploymentMarkup;
+
+            _statistics.Communicate(EStatistics.FirmNew, this);
 
         }
         #endregion
 
-        #region EventProc
         public override void EventProc(int idEvent)
         {
             switch (idEvent)
             {
                 case Event.System.Start:
-                    #region Event.System.Start
                     // If initial firm
                     _phi0 = _random.NextPareto(_settings.FirmParetoMinPhiInitial, _settings.FirmPareto_k);
                     _phi = _phi0;
                     _vacancies = 0;
                     _vacancies_net = 0;
                     break;
-                    #endregion
 
                 case Event.System.PeriodStart:
-                    #region Event.System.PeriodStart
                     // Pause if user have pressed space bar
 #if WIN_APP
                     
@@ -199,10 +197,8 @@ namespace Dream.Models.WinSOE
                         _open = true;    
 
                     break;
-                    #endregion
 
                 case Event.Economics.Update:
-                    #region Event.Economics.Update
 
                     // Default
                     if (_time.Now > _settings.FirmDefaultStart)  // 12*5
@@ -222,27 +218,9 @@ namespace Dream.Models.WinSOE
                         CloseFirm(EStatistics.FirmCloseNatural);
                         break;
                     }
-
-                    //Firings
-                    //if (_time.Now > _settings.FirmFiringsStart)
-                    //{
-                       
-                    //    double l = CalcEmployment();
-                    //    // Last in - First out
-                    //    while (_employed.Count>0 && _l_markup * _l_optimal < l - _employed.Last().Productivity) // Kan det betale sig at fyre sidst ansatte medarbejder?
-                    //    {
-                    //        Household h = _employed.Last();
-                    //        h.Communicate(ECommunicate.YouAreFired, this);
-                    //        l -= h.Productivity;
-                    //        _employed.Remove(h);
-                    //        _firings += h.Productivity;
-                    //    }
-                    //}
                     break;
-                    #endregion
 
                 case Event.System.PeriodEnd:
-                    #region Event.System.PeriodEnd
                     if (_time.Now == _settings.StatisticsWritePeriode)
                         Write();
                     
@@ -256,7 +234,6 @@ namespace Dream.Models.WinSOE
 
                     _age++;
                     break;
-                    #endregion
 
                 case Event.System.Stop:
                     break;
@@ -266,7 +243,6 @@ namespace Dream.Models.WinSOE
                     break;
             }
         }
-        #endregion
         public ECommunicate Communicate(ECommunicate comID, object o)
         {
             _returnObject = null;

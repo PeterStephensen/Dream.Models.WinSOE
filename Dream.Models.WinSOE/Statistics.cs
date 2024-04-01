@@ -38,7 +38,8 @@ namespace Dream.Models.WinSOE
         double _marketPriceTotal = 0, _marketPriceTotal0=0, _inflation=0;
         double _expectedInflation = 0, _expectedRealwageInflation = 0;
         double _realInterestRate=0, _expectedRealInterestRate=0;
-        double _profitPerHousehold, _expProfit, _interestRate;
+        //double _profitPerHousehold, _expProfit, _interestRate;
+        double _expProfit, _interestRate;
         double _avrProductivity = 0;
         StreamWriter _fileFirmReport;
         StreamWriter _fileHouseholdReport;
@@ -164,7 +165,7 @@ namespace Dream.Models.WinSOE
             }
 
         }
-        
+
         public override void EventProc(int idEvent)
         {
             
@@ -211,102 +212,37 @@ namespace Dream.Models.WinSOE
                             _fileDBStatistics.Close();
                     }
 
-                    //Calculate Profit Per Household and Sharpe Ratios
-                    _profitPerHousehold = 0;
-                    double discountedProfitsTotal = 0;
-                    double[] discountedProfits = new double[_settings.NumberOfSectors];
-                    int[] nFirms = new int[_settings.NumberOfSectors];
                     _totalProfit = 0;
-
-                    // Growth corrected real interest rate
-                    double r = (1 + _expectedRealInterestRate) / (1 + _growthPerPeriod) - 1.0;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    //double r = _expectedRealInterestRate;
-                    //double r = _expectedInterestRate;
-
-                    //_nFirmNewTotalHistory
-                    //double[] NFirmNewHistTotal = new double[(_settings.EndYear - _settings.StartYear)*_settings.PeriodsPerYear+1];
-                    int t = _time.Now;
-                    _nFirmNewTotalHistory[t] = 0;
-                    if(t>0)
-                        for (int i = 0; i < _settings.NumberOfSectors; i++)
-                            _nFirmNewTotalHistory[t] += (int)_simulation.NFirmNewHist[t-1][i];
-
-                    if (_nFirmNewTotalHistory[t] <= 0)
-                        _nFirmNewTotalHistory[t] = _settings.InvestorInitialInflow;
-
-                    //int zz = 0;
-                    //if(_time.Now>12*60)
-                    //    zz++;
-
-
                     foreach (var fi in _firmInfo)
-                    {
                         _totalProfit += fi.Profit;
 
-                        discountedProfitsTotal += (fi.Profit / Math.Pow(1 + r, fi.Age)) / _nFirmNewTotalHistory[_time.Now - fi.Age];
-                        discountedProfits[fi.Sector] += (fi.Profit / Math.Pow(1 + r, fi.Age)) / _simulation.NFirmNewHist[_time.Now - fi.Age][fi.Sector];
-                        //discountedProfitsTotal += (fi.Profit / Math.Pow(1 + r, fi.Age));
-                        //discountedProfits[fi.Sector] += (fi.Profit / Math.Pow(1 + r, fi.Age));
+                    Investor investor = _simulation.Investor;
+                    investor.CollectDataInStatistics();
+                    _sharpeRatio = investor.SharpeRatio;
+                    _expSharpeRatio = investor.ExpectedSharpeRatio;
 
-                        nFirms[fi.Sector]++; 
-                    }
+                    _sharpeRatioTotal = investor.SharpeRatio[0];
+                    _expSharpeRatioTotal = investor.ExpectedSharpeRatio[0];
 
-                    double dpTotal = discountedProfitsTotal / _firmInfo.Count;
-                    //double dpTotal = discountedProfitsTotal;
-
-                    double[] dp = new double[_settings.NumberOfSectors];
-                    for (int i = 0; i < _settings.NumberOfSectors; i++)
-                        dp[i] = discountedProfits[i] / nFirms[i];
-                        //dp[i] = discountedProfits[i];
-
-                    _sigmaRiskTotal = 0;
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) 
-                        _sigmaRisk[i] = 0;
-                    
-                    foreach (var fi in _firmInfo)
-                    {
-                        if (_nFirmNewTotalHistory[_time.Now - fi.Age] > 0)
-                        {
-                            _sigmaRiskTotal += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) / _nFirmNewTotalHistory[_time.Now - fi.Age] - dpTotal, 2);
-                            _sigmaRisk[fi.Sector] += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) / _simulation.NFirmNewHist[_time.Now - fi.Age][fi.Sector] - dp[fi.Sector], 2);
-
-                            //_sigmaRiskTotal += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) - dpTotal, 2);
-                            //_sigmaRisk[fi.Sector] += Math.Pow((fi.Profit / Math.Pow(1 + r, fi.Age)) - dp[fi.Sector], 2);
-                        }
-                    }
-
-                    _sigmaRiskTotal = Math.Sqrt(_sigmaRiskTotal / _firmInfo.Count);
-                    for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = Math.Sqrt(_sigmaRisk[i] / nFirms[i]);
-
-                    _sharpeRatioTotal = _sigmaRiskTotal > 0 ? dpTotal / _sigmaRiskTotal : 0;
-                    _expSharpeRatioTotal = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatioTotal + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatioTotal;
-
-                    for (int i = 0; i < _settings.NumberOfSectors; i++)
-                    {
-                        _sharpeRatio[i] = _sigmaRisk[i] > 0 ? dp[i] / _sigmaRisk[i] : 0;
-                        _expSharpeRatio[i] = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatio[i] + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatio[i];
-                    }
+                    _interestRate = investor.InterestRate;
 
                     if (_time.Now > _settings.BurnInPeriod2)
                     {
-                        _simulation.Investor.Iterate();
-                        _profitPerHousehold = _simulation.Investor.TakeOut / _simulation.Households.Count;
+                        //_simulation.Investor.Iterate();
 
-                        double totWealth = 0;
-                        foreach (Household h in _simulation.Households)
-                            totWealth += h.Wealth;
+                        //double totWealth = 0;
+                        //foreach (Household h in _simulation.Households)
+                        //    totWealth += h.Wealth;
 
-                        if (totWealth > 0)
-                            _interestRate = _simulation.Investor.TakeOut / totWealth;
+                        //if (totWealth > 0)
+                        //    _interestRate = _simulation.Investor.TakeOut / totWealth;
 
-                        if(_time.Now<_settings.BurnInPeriod3)
-                            _interestRate = _settings.StatisticsInitialInterestRate;
-                        //if(_interestRate<0)  
-                        //    _interestRate = 0;   
+                        //if(_time.Now<_settings.BurnInPeriod3)
+                        //    _interestRate = _settings.StatisticsInitialInterestRate;
 
-                        // Simplification: Exogeneous interes rate
-                        if (_settings.SimplificationInterestRate)
-                            _interestRate = _settings.StatisticsInitialInterestRate;
+                        //// Simplification: Exogeneous interes rate
+                        //if (_settings.SimplificationInterestRate)
+                        //    _interestRate = _settings.StatisticsInitialInterestRate;
 
                         //-----------------------------------------------------------------------------------------------
                         double smooth = 0.99;  //0.99
@@ -324,28 +260,9 @@ namespace Dream.Models.WinSOE
                         //-----------------------------------------------------------------------------------------------
                     }
 
-                    //PSP
-                    //for (int i = 0; i < _settings.NumberOfSectors; i++)
-                    //    _expSharpeRatio[i] += 1 * Math.Pow(0.99, _time.Now);
-
-                    //_expSharpeRatioTotal += 5 * Math.Pow(0.99, _time.Now);
-
-                    //int z = 0;
-                    //if (_time.Now > 12 * 30)
-                    //    z++;
-
-                    //_totalProfitFromDefaults = 0;
-                    //_profitPerHousehold = 0;
                     _n_couldNotFindSupplier = 0;
                     _firmInfo = new List<FirmInfo>();
 
-                    //_totalProfit = 0;
-
-                    //_nFirmCloseNatural = 0;
-                    //_nFirmCloseTooBig = 0;
-                    //_nFirmCloseNegativeProfit = 0;
-                    //_nFirmCloseZeroEmployment = 0;
-                    //_nFirmNew = 0;
                     _nChangeShopInSearchForShop = 0;
                     _nChangeShopInBuyFromShopNull = 0;
                     _nChangeShopInBuyFromShopLookingForGoods = 0;
@@ -636,8 +553,9 @@ namespace Dream.Models.WinSOE
 
                                 
                                 sw.WriteLineTab(1.0 * _settings.StartYear + 1.0 * _time.Now / _settings.PeriodsPerYear, _time.Now,
-                                    _simulation.Households.Count, prod_avr, nUnemp, tot_opt_l, P_star, _totalEmployment, 
-                                    tot_vacancies, _marketWageTotal, _marketPriceTotal, _totalSales, _profitPerHousehold,
+                                    _simulation.Households.Count, prod_avr, nUnemp, tot_opt_l, P_star, _totalEmployment,
+                                    //tot_vacancies, _marketWageTotal, _marketPriceTotal, _totalSales, _profitPerHousehold,
+                                    tot_vacancies, _marketWageTotal, _marketPriceTotal, _totalSales, 
                                     n_firms, _expProfit, mean_age, _meanValue, _nFirmCloseNatural, 
                                     _nFirmCloseZeroEmployment, _nFirmCloseTooBig, _nFirmNew, _discountedProfits, 
                                     _expDiscountedProfits, _sharpeRatioTotal, _expSharpeRatioTotal, laborSupply, _yr_consumption, _yr_employment, 
@@ -943,7 +861,7 @@ namespace Dream.Models.WinSOE
                     return;
 
                 case EStatistics.FirmNew:
-                    _nFirmNew += (double)o;
+                    _nFirmNew++;
                     return;
 
                 case EStatistics.CouldNotFindSupplier:
@@ -1026,13 +944,16 @@ namespace Dream.Models.WinSOE
             for (int i = 0; i < _settings.NumberOfSectors; i++)
                 foreach (Firm f in _simulation.Sector(i))
                 {
-                    productivity.Add(f.Productivity / corr);
-                    production.Add(f.Production / corr);
-                    profit.Add(f.Profit / _marketPriceTotal / corr);
-                    age.Add(1.0 * f.Age / 12);
-                    employment.Add(f.Employment);
-                    price.Add(f.Price / _marketPriceTotal);
-                    wage.Add(f.Wage / _marketWageTotal);
+                    if (!double.IsNaN(f.Production))
+                    {
+                        productivity.Add(f.Productivity / corr);
+                        production.Add(f.Production / corr);
+                        profit.Add(f.Profit / _marketPriceTotal / corr);
+                        age.Add(1.0 * f.Age / 12);
+                        employment.Add(f.Employment);
+                        price.Add(f.Price / _marketPriceTotal);
+                        wage.Add(f.Wage / _marketWageTotal);
+                    }
                 }
 
             _chartData.MicroData.Productivity = productivity.ToArray();
@@ -1273,10 +1194,10 @@ namespace Dream.Models.WinSOE
         {
             get { return _sectorProductivity; }
         }
-        public double ProfitPerHousehold
-        {
-            get { return _profitPerHousehold; }
-        }
+        //public double ProfitPerHousehold
+        //{
+        //    get { return _profitPerHousehold; }
+        //}
         public double MeanValue
         {
             get { return _meanValue; }
@@ -1347,6 +1268,11 @@ namespace Dream.Models.WinSOE
         {
             get { return _realInterestRate; }
         }
+        public List<FirmInfo> FirmInfos
+        {
+            get { return _firmInfo; }
+        }
+
         public double ExpectedRealInterestRate
         {
             get { return _expectedRealInterestRate; }

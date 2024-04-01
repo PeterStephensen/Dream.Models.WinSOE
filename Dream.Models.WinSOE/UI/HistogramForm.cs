@@ -13,6 +13,8 @@ namespace Dream.Models.WinSOE.UI
         {
             InitializeComponent();
 
+            this.WindowState = FormWindowState.Maximized;
+
             this.KeyPreview = true;
 
             labelMicroDataPeriod.Text = "";
