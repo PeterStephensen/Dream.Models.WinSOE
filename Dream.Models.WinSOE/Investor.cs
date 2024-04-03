@@ -92,7 +92,7 @@ namespace Dream.Models.WinSOE
             }
         }
 
-        public void CollectDataInStatistics()
+        public void CalculateSharpeRatiosAndInterestRate()
         {
             // This method should be called in Statistics under Event.System.PeriodStart
             //--------------------------------------------------------------------------------

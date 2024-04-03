@@ -57,7 +57,6 @@ namespace Dream.Models.WinSOE
                 _winFormElements.MainFormUI.Simulation = this;
 #endif
 
-
             if (_settings.RandomSeed > 0)
             {
                 _random = new Random(_settings.RandomSeed);     // The one and only Random object
@@ -202,7 +201,7 @@ namespace Dream.Models.WinSOE
 
                 case Event.System.PeriodStart:
                     //_statistics.Communicate(EStatistics.FirmNew, _nFirmNewTotal);
-                    
+                   
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
                         Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now/12, DateTime.Now - _t0);

@@ -6,10 +6,6 @@ using Dream.IO;
 namespace Dream.Models.WinSOE
 {
 
-    #region FirmInfo Class
-    /// <summary>
-    /// This class contains information to the Statistics object
-    /// </summary>
     public class FirmInfo
     {
         public int Age { get; set; }
@@ -23,8 +19,7 @@ namespace Dream.Models.WinSOE
             Profit = firm.Profit;
         }
     }
-    #endregion
-
+    
     public class Statistics : Agent
     {
 
@@ -217,7 +212,7 @@ namespace Dream.Models.WinSOE
                         _totalProfit += fi.Profit;
 
                     Investor investor = _simulation.Investor;
-                    investor.CollectDataInStatistics();
+                    investor.CalculateSharpeRatiosAndInterestRate();
                     _sharpeRatio = investor.SharpeRatio;
                     _expSharpeRatio = investor.ExpectedSharpeRatio;
 
@@ -227,24 +222,7 @@ namespace Dream.Models.WinSOE
                     _interestRate = investor.InterestRate;
 
                     if (_time.Now > _settings.BurnInPeriod2)
-                    {
-                        //_simulation.Investor.Iterate();
-
-                        //double totWealth = 0;
-                        //foreach (Household h in _simulation.Households)
-                        //    totWealth += h.Wealth;
-
-                        //if (totWealth > 0)
-                        //    _interestRate = _simulation.Investor.TakeOut / totWealth;
-
-                        //if(_time.Now<_settings.BurnInPeriod3)
-                        //    _interestRate = _settings.StatisticsInitialInterestRate;
-
-                        //// Simplification: Exogeneous interes rate
-                        //if (_settings.SimplificationInterestRate)
-                        //    _interestRate = _settings.StatisticsInitialInterestRate;
-
-                        //-----------------------------------------------------------------------------------------------
+                    {                   
                         double smooth = 0.99;  //0.99
                         if (_time.Now > _settings.BurnInPeriod3)
                         {
@@ -257,7 +235,6 @@ namespace Dream.Models.WinSOE
                                 _expectedInterestRate = 0;
 
                         }
-                        //-----------------------------------------------------------------------------------------------
                     }
 
                     _n_couldNotFindSupplier = 0;
@@ -286,8 +263,6 @@ namespace Dream.Models.WinSOE
                     if (_time.Now == _settings.StatisticsWritePeriode)
                         Write();
 
-                    // Profit income to households. What comes from defaults and deaths during Update
-                    //_profitPerHousehold += _totalProfitFromDefaults / _simulation.Households.Count;  
 
                     // TWO LOOPS over firms !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     double totalRevenues = 0;
@@ -324,14 +299,11 @@ namespace Dream.Models.WinSOE
                     _totalPotensialSales = 0;
                     _totalEmployment = 0;
                     _totalProduction = 0;
-                    //_totalProfit = _totalProfitFromDefaults; 
-                    //double totProfit = 0;
                     double mean_age = 0;
                     double tot_vacancies = 0;
                     double meanWageTot = 0;
                     double meanPriceTot = 0;
                     double nEmployment = 0;
-                    //double potentialSales = 0;
                     int no = 0;
                     int ok = 0;
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
@@ -353,30 +325,15 @@ namespace Dream.Models.WinSOE
                         }
                    
                     _avrProductivity = _totalEmployment / nEmployment;
-                    //double firmRejectionRate = (double)no / (no + ok);
-                    //double potentilaSalesRate = _totalPotensialSales / _totalSales;
-                    // Calculation of profitPerHousehold
-                    //_profitPerHousehold = _totalProfit / _simulation.Households.Count;  // Profit income to households
-                    //_totalProfitFromDefaults = 0;
 
                     int n_firms = 0;
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
                         n_firms += _simulation.Sector(i).Count;
 
-                    //double m_pi = _discountedProfits /n_firms;
-                    //_sigmaRiskTotal = 0;
-
-                    //for (int i = 0; i < _settings.NumberOfSectors; i++)
-                    //    foreach (Firm f in _simulation.Sector(i))
-                    //        _sigmaRiskTotal += Math.Pow(f.Profit / Math.Pow(1 + _interestRate, f.Age) - m_pi, 2);
-                    //_sigmaRiskTotal = Math.Sqrt(_sigmaRiskTotal / n_firms);
-                    //_sharpeRatioTotal = _sigmaRiskTotal > 0 ? m_pi / _sigmaRiskTotal : 0;
 
                     _expDiscountedProfits = 0.99 * _expDiscountedProfits + (1 - 0.99) * _discountedProfits; // Bruges ikke
-                    //_expSharpeRatioTotal = _settings.StatisticsExpectedSharpeRatioSmooth * _expSharpeRatioTotal + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatioTotal;
                     mean_age /= n_firms;
                     _meanValue /= n_firms;
-                    //_expProfit = totProfit / n_firms;
 
                     if (meanWageTot > 0)
                         _marketWageTotal = meanWageTot / _totalEmployment;
@@ -431,8 +388,8 @@ namespace Dream.Models.WinSOE
                                 prices[i].Add(h.FirmShopArray(i).Price);
 
                     }
-                    //double h_rejectionRate = (double)h_no / (h_no + h_ok);
                     double consLoss = 1.0 - consValue / consBudget;
+
                     // Calculate median wage
                     if (wages.Count > 0)
                         _wageMedian = wages.Median();
@@ -461,7 +418,6 @@ namespace Dream.Models.WinSOE
 
                         _realInterestRate = (1+_interestRate)/(1+_inflation) - 1;
 
-                        //_discountedProfits /= _marketPrice;
                     }
 
                     if ((_time.Now + 1) % _settings.PeriodsPerYear == 0)
@@ -821,7 +777,7 @@ namespace Dream.Models.WinSOE
             }
         }
         
-        public void Communicate(EStatistics comID, object o)
+       public void Communicate(EStatistics comID, object o)
         {
             Firm f = null;
             Household h = null;
@@ -986,7 +942,7 @@ namespace Dream.Models.WinSOE
 
         }
         
-        string Path(string fileName)
+       string Path(string fileName)
         {
 #if !LINUX_APP            
             return _settings.OutputDir + "\\" + fileName;
@@ -1194,10 +1150,6 @@ namespace Dream.Models.WinSOE
         {
             get { return _sectorProductivity; }
         }
-        //public double ProfitPerHousehold
-        //{
-        //    get { return _profitPerHousehold; }
-        //}
         public double MeanValue
         {
             get { return _meanValue; }
