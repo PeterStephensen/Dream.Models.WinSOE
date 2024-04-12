@@ -18,13 +18,18 @@ namespace Dream.Models.WinSOE
         {
             _t = DateTime.Now;
         }
-        public void Stop()
+        public TimeSpan Stop(bool reset=false)
         {
             _t_used += DateTime.Now - _t;
+            TimeSpan tu = _t_used;
+            if(reset)
+                _t_used = TimeSpan.Zero;
+            return tu;
         }
         public void Reset()
         {
             _t_used = TimeSpan.Zero;
+            _t = DateTime.Now;
         }
 
         public TimeSpan TimeUsed
@@ -64,6 +69,11 @@ namespace Dream.Models.WinSOE
         double _investorProfitSensitivity;
         double _shockSign = 1;
         Timer _timer = new Timer();
+        Timer _t_periodStart = new Timer();
+        Timer _t_update = new Timer();
+        Timer _t_shopping = new Timer();
+        Timer _t_periodEnd = new Timer();
+        Timer _t_randomize = new Timer();
         #endregion
 
         public Simulation(Settings settings, Time time, WinFormElements winFormElements)
@@ -210,15 +220,28 @@ namespace Dream.Models.WinSOE
                     // Event pump
                     do
                     {
+                        _t_periodStart.Start();
                         this.EventProc(Event.System.PeriodStart);
+                        _t_periodStart.Stop();
+
+                        _t_update.Start();
                         this.EventProc(Event.Economics.Update);
+                        _t_update.Stop();
+
+                        _t_shopping.Start();
                         for (int i = 0; i < _settings.HouseholdNumberShoppingsPerPeriod; i++)
                             _households.EventProc(Event.Economics.Shopping);
-                        this.EventProc(Event.System.PeriodEnd);
+                        _t_shopping.Stop();
 
+                        _t_periodEnd.Start();
+                        this.EventProc(Event.System.PeriodEnd);
+                        _t_periodEnd.Stop();
+
+                        _t_randomize.Start();
                         _households.RandomizeAgents();
                         foreach (Agent firms in _sectors)
                             firms.RandomizeAgents();
+                        _t_randomize.Stop();
 
                         if (!_settings.SaveScenario)
                             if (testCancel())
@@ -235,12 +258,41 @@ namespace Dream.Models.WinSOE
 
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
-                        Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now / 12, DateTime.Now - _t0);
+
+                        double d_periodStart = _t_periodStart.TimeUsed.TotalMilliseconds;
+                        double d_update = _t_update.TimeUsed.TotalMilliseconds;
+                        double d_shoppping = _t_shopping.TimeUsed.TotalMilliseconds;
+                        double d_periodEnd = _t_periodEnd.TimeUsed.TotalMilliseconds;
+                        double d_randomize = _t_randomize.TimeUsed.TotalMilliseconds;
+                        double tot = d_periodStart + d_update + d_shoppping + d_periodEnd + d_randomize;
+                        d_periodStart = 100 * d_periodStart / tot;
+                        d_update = 100 * d_update / tot;
+                        d_shoppping = 100 * d_shoppping / tot;
+                        d_periodEnd = 100 * d_periodEnd / tot;
+                        d_randomize = 100 * d_randomize / tot;
+
+                        if (_time.Now % (25*_settings.PeriodsPerYear) == 0)  // Every 25 years
+                            Console.WriteLine("\t\tSTART\tUPDATE\tSHOP\tEND\tRANDOMIZE");
+
+                        Console.WriteLine("{0}\t{1}\t{2:#.}\t{3:#.}\t{4:#.}\t{5:#.}\t{6:#.}", _settings.Shock, _time.Now / 12,
+                        d_periodStart,
+                        d_update,
+                        d_shoppping,
+                        d_periodEnd,
+                        d_randomize);
+
+                        //Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now / 12, DateTime.Now - _t0);
                         _t0 = DateTime.Now;
+
+                        _t_periodStart.Reset();
+                        _t_update.Reset();
+                        _t_shopping.Reset();
+                        _t_periodEnd.Reset();
+                        _t_randomize.Reset();
 
                     }
 
-                    if(_time.Now==_settings.BurnInPeriod1)
+                    if (_time.Now==_settings.BurnInPeriod1)
                     {
                         Console.WriteLine("-------------------------------------------------------------------------------");
                         Console.WriteLine("--------------------------- END OF BURN-IN PERIOD 1 ---------------------------");
