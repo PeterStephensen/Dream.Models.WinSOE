@@ -17,9 +17,9 @@ namespace ConsoleSOE
 
             new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Base, seed: seed, atw: null, outputDir);
 
-            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Productivity, seed: seed, atw: null, outputDir);
+            //new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Productivity, seed: seed, atw: null, outputDir);
 
-            new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Tsunami, seed: seed, atw: null, outputDir);
+            //new SimulationRunner(saveScenario: true, winFormElements: null, shock: EShock.Tsunami, seed: seed, atw: null, outputDir);
 
 
         }

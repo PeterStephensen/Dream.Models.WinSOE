@@ -3,6 +3,36 @@ using Dream.IO;
 
 namespace Dream.Models.WinSOE
 {
+    
+    public class Timer
+    {         
+        DateTime _t;
+        TimeSpan _t_used;
+
+        public Timer()
+        {
+            _t_used = TimeSpan.Zero;
+            _t = DateTime.Now;
+        }
+        public void Start()
+        {
+            _t = DateTime.Now;
+        }
+        public void Stop()
+        {
+            _t_used += DateTime.Now - _t;
+        }
+        public void Reset()
+        {
+            _t_used = TimeSpan.Zero;
+        }
+
+        public TimeSpan TimeUsed
+        {
+            get { return _t_used; }
+        }
+    }   
+    
     public class Simulation : Agent
     {
         #region Static private fields
@@ -33,6 +63,7 @@ namespace Dream.Models.WinSOE
         bool _baseRun;
         double _investorProfitSensitivity;
         double _shockSign = 1;
+        Timer _timer = new Timer();
         #endregion
 
         public Simulation(Settings settings, Time time, WinFormElements winFormElements)
@@ -201,11 +232,12 @@ namespace Dream.Models.WinSOE
 
                 case Event.System.PeriodStart:
                     //_statistics.Communicate(EStatistics.FirmNew, _nFirmNewTotal);
-                   
+
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
-                        Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now/12, DateTime.Now - _t0);
+                        Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now / 12, DateTime.Now - _t0);
                         _t0 = DateTime.Now;
+
                     }
 
                     if(_time.Now==_settings.BurnInPeriod1)
@@ -630,6 +662,10 @@ namespace Dream.Models.WinSOE
         public Time Time
         {
             get { return _time; }
+        }
+        public Timer Timer
+        {
+            get { return _timer; }
         }
         public static Simulation Instance
         {
