@@ -855,7 +855,7 @@ namespace Dream.Models.WinSOE
 
                     }
 
-                    int[] fixedWidth = new int[] { 2, 3, 7, 8 ,9}; //7
+                    int[] fixedWidth = new int[] { 2, 3, 7, 8 ,9, 12, 13}; //7
 
                     if (_simulation.Time.Now > 12 * 70 & _simulation.Time.Now < 12 * 75)
                     {
@@ -869,8 +869,8 @@ namespace Dream.Models.WinSOE
                         if (i == 9) _formsPlot[i].Plot.SetAxisLimitsY(0, 0.5);        // Good Shortage
                         if (i == 10) _formsPlot[i].Plot.SetAxisLimitsY(-0.05, 0.1);  // Wage inflation        
                         if (i == 11) _formsPlot[i].Plot.SetAxisLimitsY(0, 100000);    // Real Wealth
-                        if (i == 12) _formsPlot[i].Plot.SetAxisLimitsY(-0.05, 0.7);   // Real interest rate
-                        if (i == 13) _formsPlot[i].Plot.SetAxisLimitsY(-0.05, 0.7);   // Interest rate
+                        if (i == 12) _formsPlot[i].Plot.SetAxisLimitsY(-0.15, 0.7);   // Real interest rate
+                        if (i == 13) _formsPlot[i].Plot.SetAxisLimitsY(-0.15, 0.7);   // Interest rate
                         if (i == 14) _formsPlot[i].Plot.SetAxisLimitsY(-0.1, 0.1);   // Inflation
                         if (i == 15) _formsPlot[i].Plot.SetAxisLimitsY(-0.05, 0.1);   // Real wage inflation
                         if (i == 15) _formsPlot[i].Plot.AddHorizontalLine(0.02, Color.Black, (float)0.1, LineStyle.Dot);

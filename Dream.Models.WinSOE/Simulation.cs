@@ -9,7 +9,7 @@ namespace Dream.Models.WinSOE
         TimePerYear,
         EventDistribution
     }
-    
+   
     public class Timer
     {         
         DateTime _t;

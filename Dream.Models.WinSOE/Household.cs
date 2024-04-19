@@ -229,7 +229,8 @@ namespace Dream.Models.WinSOE
                         if (_consumption_budget < 0 & _consumption_budget > -1.0e-5) _consumption_budget = 0;
 
                         if (_consumption_budget < 0)
-                            throw new Exception("_consumption_budget < 0");
+                            _consumption_budget = 0;
+                            //throw new Exception("_consumption_budget < 0");
 
                     }
 

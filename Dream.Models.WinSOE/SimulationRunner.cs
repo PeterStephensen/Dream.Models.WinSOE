@@ -82,9 +82,9 @@ namespace Dream.Models.WinSOE
             double sens = 1 / 0.75;   //0.25 * 1 / 0.75
 
             // Wage ----------------------------------
-            settings.FirmWageMarkup = 1 * mark; //1                                              
+            settings.FirmWageMarkup = 1.0 * mark; //1                                              
             settings.FirmWageMarkupSensitivity = 2 * sens;//10
-            settings.FirmWageMarkdown = 0.5 * mark;   //1            Overvej 0: Kører renten mod 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            settings.FirmWageMarkdown = 0.5 * mark;   //0.5            Overvej 0: Kører renten mod 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             settings.FirmWageMarkdownSensitivity = 2 * sens;//10
 
             // In zone

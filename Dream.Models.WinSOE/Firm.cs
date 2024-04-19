@@ -254,7 +254,8 @@ namespace Dream.Models.WinSOE
                     _jobApplications++;
                     _jobApplicationsProductivity += h.Productivity;
 
-                    double lambda = 0.0;
+                    double lambda = _settings.FirmMismatchProbabilityParameter;
+                    lambda = 0;  // 15
                     double prob = 2.0 / (1.0 + Math.Exp(lambda * Math.Pow(h.Education - _preferedEducation, 2)));
 
                     if (_vacancies>0)

@@ -264,11 +264,8 @@
         [Tweakable(0,1)]
         public double FirmStockDepreciation { get; set; } = 0;
 
-        /// <summary>
-        ///// The firms target stock-production-ratio
-        ///// </summary>
-        //[Tweakable(0, 1)]
-        //public double FirmStockProductionRatio { get; set; } = 0.05;
+        [Tweakable(0, 10)]
+        public double FirmMismatchProbabilityParameter { get; set; } = 0.0;
         #endregion
 
         #region Households

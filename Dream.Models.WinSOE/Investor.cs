@@ -98,7 +98,13 @@ namespace Dream.Models.WinSOE
             //--------------------------------------------------------------------------------
 
             // Interest rate - Inflation and growth corrected
-            double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
+            //double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
+            double g = _statistics.GrowthPerPeriod;
+            double r = (1 + _statistics.ExpectedRealInterestRate) - 1.0;
+            if (r < 0) // Zero lower bound
+                r = 0;
+
+            //r += Math.Pow(1 + 0.01, 1.0 / _settings.PeriodsPerYear) - 1.0; // Risk premium
 
             // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
             double[] discExpProfits = new double[_settings.NumberOfSectors];   // Discounted expected profits. Used to calculate Sharp ratio
@@ -109,6 +115,8 @@ namespace Dream.Models.WinSOE
                 double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
 
                 discExpProfits[fi.Sector] += n > 0 ? fi.Profit * disc / n : 0;       // Discounted expected profit per new born firm
+                //discExpProfits[fi.Sector] += n > 0 ? fi.Profit * Math.Pow(1 + g, fi.Age) * disc / n : 0;       // Discounted expected profit per new born firm (corrected for productivity growth)
+
                 nFirms[fi.Sector]++;
             }
 
@@ -122,6 +130,7 @@ namespace Dream.Models.WinSOE
                 double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
 
                 sigmaRisk[fi.Sector] += n > 0 ? Math.Pow((fi.Profit * disc / n) - discExpProfits[fi.Sector], 2) : 0;       // Discounted expected profit per new born firm
+                //sigmaRisk[fi.Sector] += n > 0 ? Math.Pow((fi.Profit * Math.Pow(1 + g, fi.Age) * disc / n) - discExpProfits[fi.Sector], 2) : 0;       // Discounted expected profit per new born firm
                 //sigmaRisk[fi.Sector] = 1;
             }
             for (int i = 0; i < _settings.NumberOfSectors; i++) sigmaRisk[i] = Math.Sqrt(sigmaRisk[i] / nFirms[i]);
