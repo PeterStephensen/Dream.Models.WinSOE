@@ -607,12 +607,16 @@ namespace Dream.Models.WinSOE
             // Calculate budget 
             for (int s = 0; s < _settings.NumberOfSectors; s++)
             {
-                _budget[s] = _s_CES[s] * Math.Pow(_firmShopArray[s].Price / _P_CES, 1 - _settings.HouseholdCES_Elasticity) * _consumption_budget;
+                if(_settings.NumberOfSectors>1)
+                    _budget[s] = _s_CES[s] * Math.Pow(_firmShopArray[s].Price / _P_CES, 1 - _settings.HouseholdCES_Elasticity) * _consumption_budget;
+                else
+                    _budget[s] = _consumption_budget;
+
                 _c[s] = 0; // Initialization
                 _vc[s] = 0; // Initialization
 
                 if (_budget[s] < 0)
-                    throw new Exception("Negative budget!!");
+                    throw new Exception(string.Format("Negative budget!! _budget[s] = {0}", _budget[s]));
 
                 if (_budget[s] == 0 & _consumption_budget>0)
                     throw new Exception("_budget[s] == 0 & _consumption_budget>0");

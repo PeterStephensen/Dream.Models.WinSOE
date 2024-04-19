@@ -577,6 +577,10 @@
         /// Exogeneous interes rate
         /// </summary>
         public bool SimplificationInterestRate { get; set; } = true;
+
+        public EConsoleOutput ConsoleOutput { get; set; } = EConsoleOutput.TimePerYear;
+
+
         #endregion
 
     }

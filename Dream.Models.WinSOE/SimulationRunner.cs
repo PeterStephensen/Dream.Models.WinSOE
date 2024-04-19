@@ -236,6 +236,8 @@ namespace Dream.Models.WinSOE
             settings.PeriodsPerYear = 12;
             settings.ShockPeriod = 200 * 12;
 
+            settings.ConsoleOutput = EConsoleOutput.EventDistribution;
+
             settings.StatisticsOutputPeriode = 60 * 12;   
             settings.StatisticsGraphicsPlotInterval = 1;
 

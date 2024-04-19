@@ -3,6 +3,12 @@ using Dream.IO;
 
 namespace Dream.Models.WinSOE
 {
+
+    public enum EConsoleOutput
+    {
+        TimePerYear,
+        EventDistribution
+    }
     
     public class Timer
     {         
@@ -259,36 +265,49 @@ namespace Dream.Models.WinSOE
                     if (_time.Now % _settings.PeriodsPerYear == 0)  // Once a year
                     {
 
-                        double d_periodStart = _t_periodStart.TimeUsed.TotalMilliseconds;
-                        double d_update = _t_update.TimeUsed.TotalMilliseconds;
-                        double d_shoppping = _t_shopping.TimeUsed.TotalMilliseconds;
-                        double d_periodEnd = _t_periodEnd.TimeUsed.TotalMilliseconds;
-                        double d_randomize = _t_randomize.TimeUsed.TotalMilliseconds;
-                        double tot = d_periodStart + d_update + d_shoppping + d_periodEnd + d_randomize;
-                        d_periodStart = 100 * d_periodStart / tot;
-                        d_update = 100 * d_update / tot;
-                        d_shoppping = 100 * d_shoppping / tot;
-                        d_periodEnd = 100 * d_periodEnd / tot;
-                        d_randomize = 100 * d_randomize / tot;
+                        if(_settings.ConsoleOutput==EConsoleOutput.EventDistribution)
+                        {
+                            double d_periodStart = _t_periodStart.TimeUsed.TotalMilliseconds;
+                            double d_update = _t_update.TimeUsed.TotalMilliseconds;
+                            double d_shoppping = _t_shopping.TimeUsed.TotalMilliseconds;
+                            double d_periodEnd = _t_periodEnd.TimeUsed.TotalMilliseconds;
+                            double d_randomize = _t_randomize.TimeUsed.TotalMilliseconds;
+                            double tot = d_periodStart + d_update + d_shoppping + d_periodEnd + d_randomize;
+                            d_periodStart = 100 * d_periodStart / tot;
+                            d_update = 100 * d_update / tot;
+                            d_shoppping = 100 * d_shoppping / tot;
+                            d_periodEnd = 100 * d_periodEnd / tot;
+                            d_randomize = 100 * d_randomize / tot;
 
-                        if (_time.Now % (25*_settings.PeriodsPerYear) == 0)  // Every 25 years
-                            Console.WriteLine("\t\tSTART\tUPDATE\tSHOP\tEND\tRANDOMIZE");
+                            if (_time.Now % (25 * _settings.PeriodsPerYear) == 0)  // Every 25 years
+                            {
+                                Console.WriteLine("----------------------------------------------------------------");
+                                Console.WriteLine("\t\tSTART\tUPDATE\tSHOP\tEND\tRAND\tdTIME");
+                                Console.WriteLine("----------------------------------------------------------------");
+                            }
 
-                        Console.WriteLine("{0}\t{1}\t{2:#.}\t{3:#.}\t{4:#.}\t{5:#.}\t{6:#.}", _settings.Shock, _time.Now / 12,
-                        d_periodStart,
-                        d_update,
-                        d_shoppping,
-                        d_periodEnd,
-                        d_randomize);
+                            Console.WriteLine("{0}\t{1}\t{2:#.#}\t{3:#.#}\t{4:#.#}\t{5:#.#}\t{6:#.#}\t{7:#.####}", _settings.Shock, _time.Now / 12,
+                            d_periodStart,
+                            d_update,
+                            d_shoppping,
+                            d_periodEnd,
+                            d_randomize,
+                            (DateTime.Now - _t0).TotalSeconds);
 
-                        //Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now / 12, DateTime.Now - _t0);
+                            _t_periodStart.Reset();
+                            _t_update.Reset();
+                            _t_shopping.Reset();
+                            _t_periodEnd.Reset();
+                            _t_randomize.Reset();
+                        }
+
+                        if (_settings.ConsoleOutput == EConsoleOutput.TimePerYear)
+                        {
+                            Console.WriteLine("{0}, Year: {1}, Time per year: {2}", _settings.Shock, _time.Now / 12, DateTime.Now - _t0);
+                        }
+
                         _t0 = DateTime.Now;
 
-                        _t_periodStart.Reset();
-                        _t_update.Reset();
-                        _t_shopping.Reset();
-                        _t_periodEnd.Reset();
-                        _t_randomize.Reset();
 
                     }
 
