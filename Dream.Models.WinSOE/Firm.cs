@@ -420,11 +420,11 @@ namespace Dream.Models.WinSOE
         void Marketing()
         {
 
+            double gamma_y = _settings.FirmExpectedSalesFraction;
             //bool inZone = Math.Abs((_expSales - _y_optimal) / _y_optimal) < _settings.FirmComfortZoneSales;
-            bool inZone = Math.Abs((_expPotentialSales - _y_optimal) / _y_optimal) < _settings.FirmComfortZoneSales;
+            bool inZone = Math.Abs((_expPotentialSales - _y_optimal * gamma_y) / _y_optimal) < _settings.FirmComfortZoneSales;
             //bool inZone = Math.Abs((_expPotentialSales - _expSales) / _y_optimal) < _settings.FirmComfortZoneSales;
             double probRecalculate = inZone ? _settings.FirmProbabilityRecalculatePriceInZone : _settings.FirmProbabilityRecalculatePrice;
-            double gamma_y = _settings.FirmExpectedSalesFraction;
             bool advertise = false;
 
 
