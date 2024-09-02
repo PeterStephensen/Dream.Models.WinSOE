@@ -109,8 +109,8 @@ namespace Dream.Models.WinSOE
             settings.FirmPriceMarkdownSensitivityInZone = 1 * sens;
 
             //-----
-            settings.FirmComfortZoneEmployment = 0.10;
-            settings.FirmComfortZoneSales = 0.10;
+            settings.FirmComfortZoneEmployment = 0.010;
+            settings.FirmComfortZoneSales = 0.010;
 
             settings.FirmProbabilityRecalculatePrice = 1.0;
             settings.FirmProbabilityRecalculatePriceInZone = 2.0/12; // 0.5
