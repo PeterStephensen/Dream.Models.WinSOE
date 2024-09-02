@@ -356,7 +356,8 @@ namespace Dream.Models.WinSOE
             _expApplications = smooth * _expApplications + (1 - smooth) * _jobApplicationsProductivity;
             _expPotentialSales = smooth2 * _expPotentialSales    + (1 - smooth2) * _potentialSales;
             _expSales             = smooth2 * _expSales + (1 - smooth2) * _sales;
-            _expEmployment        = smooth2 * _expEmployment        + (1 - smooth2) * CalcEmployment();
+            //_expEmployment        = smooth2 * _expEmployment        + (1 - smooth2) * CalcEmployment();
+            _expEmployment = 0 * _expEmployment + (1 - 0) * CalcEmployment(); //zzz    
             _expVacancies         = smooth * _expVacancies         + (1 - smooth) * _vacancies;
             _expOptimalProduction = smooth * _expOptimalProduction + (1 - smooth) * _y_optimal;
             _expOptimalEmployment = smooth * _expOptimalEmployment + (1 - smooth) * _l_optimal;

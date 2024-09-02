@@ -116,7 +116,7 @@ namespace Dream.Models.WinSOE
             settings.FirmProbabilityRecalculatePriceInZone = 2.0/12; // 0.5
 
             settings.FirmExpectedExcessPotentialSales = 1.0; // 
-            settings.FirmExpectedSalesFraction = 0.8;                            //1.0   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            settings.FirmExpectedSalesFraction = 0.9;       //0.8   zzz
 
             settings.FirmPriceMechanismStart = 12 * 1;
 
@@ -128,19 +128,19 @@ namespace Dream.Models.WinSOE
             settings.FirmExpectationSmooth = 0.95; //0.4  
             settings.FirmMaxEmployment = 100000;  // 1000            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            settings.FirmEmploymentMarkup = 1.25;   // 1.5
+            settings.FirmEmploymentMarkup = 1.025;   // 1.5    zzz
 
             settings.FirmNumberOfGoodAdvertisements = 100; // 25 
             settings.FirmNumberOfJobAdvertisements = 15;   // 15!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            settings.FirmVacanciesShare = 1.0;
+            settings.FirmVacanciesShare = 1.0; //1.0
             settings.FirmMinRemainingVacancies = 5;
 
             settings.FirmProfitLimitZeroPeriod = (2040 - 2014) * 12;
 
             settings.FirmProductivityGrowth = 0.02;
            
-            settings.FirmStockDepreciation = 0.25;
+            settings.FirmStockDepreciation = 0.25; //0.25
 
             // Households
             settings.HouseholdReservationWageReduction = 0.98;  // 0.9 !!!!!!!!!!!!!!!!!!!!!!
@@ -148,7 +148,7 @@ namespace Dream.Models.WinSOE
             settings.HouseholdNumberFirmsSearchJobNew = 4;  //15              
             settings.HouseholdNumberFirmsSearchShop = 15;       //15
             settings.HouseholdProbabilityQuitJob = 0.05;        // 0.02   // Defines unemplyment rate !!!!!!!!!!!!!!!!!
-            settings.HouseholdProbabilityOnTheJobSearch = 0.01;   //0.05                        
+            settings.HouseholdProbabilityOnTheJobSearch = 0.15;   //0.05  zzz                        
             settings.HouseholdProbabilitySearchForShop = 0.15;     //0.25                    
             settings.HouseholdProductivityLogSigmaInitial = 0.6;
             settings.HouseholdProductivityLogMeanInitial = -0.5 * Math.Pow(settings.HouseholdProductivityLogSigmaInitial, 2); // Sikrer at forventet produktivitet er 1
