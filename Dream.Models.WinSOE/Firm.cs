@@ -547,14 +547,17 @@ namespace Dream.Models.WinSOE
                 if (_time.Now > 12 * 30)
                     ll = _expEmployment;
 
-                if (ll > _l_optimal)
+                //double m = 1;
+                double m = _l_markup;
+
+                if (ll > m * _l_optimal)
                 {
-                    double g = markdown * PriceFunc(markdownSensitivity * (ll - _l_optimal) / _l_optimal);
+                    double g = markdown * PriceFunc(markdownSensitivity * (ll - m*_l_optimal) / (m * _l_optimal));
                     w_target = (1 - g) * marketWage;
                 }
                 else
                 {
-                    double g = markup * PriceFunc(markupSensitivity * (_l_optimal - ll) / _l_optimal);
+                    double g = markup * PriceFunc(markupSensitivity * (m * _l_optimal - ll) / (m * _l_optimal));
                     w_target = (1 + g) * marketWage;
                     //if (!inZone)                               //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     if (!inZone & _age < 12 * 5)
