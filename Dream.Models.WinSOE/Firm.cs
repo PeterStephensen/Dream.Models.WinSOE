@@ -113,10 +113,8 @@ namespace Dream.Models.WinSOE
             _sector = sector;
             _preferedEducation = _random.NextDouble();
 
-            //_phi0 = _random.NextPareto(_settings.FirmParetoMinPhi, _settings.FirmPareto_k);
             double g_m = Math.Pow(1 + _settings.FirmProductivityGrowth, 1.0 / _settings.PeriodsPerYear) - 1.0;                 
-            _phi0 = _random.NextPareto(_settings.FirmParetoMinPhi, _settings.FirmPareto_k, censor_top: _settings.FirmParetoCensorTop) * Math.Pow(1 + g_m,_time.Now); //!!!!!!!!!!!!!!!!
-            //_phi0 = Math.Exp(_random.NextGaussian(0.6, 0.15)) * Math.Pow(1 + g_m, _time.Now);
+            _phi0 = _random.NextPareto(_settings.FirmParetoMinPhi, _settings.FirmPareto_k, censor_top: _settings.FirmParetoCensorTop) * Math.Pow(1 + g_m,_time.Now); 
             _phi = _phi0;
             
             if (_random.NextEvent(_settings.StatisticsFirmReportSampleSize))
@@ -141,6 +139,7 @@ namespace Dream.Models.WinSOE
             switch (idEvent)
             {
                 case Event.System.Start:
+                    //TEST
                     // If initial firm
                     _phi0 = _random.NextPareto(_settings.FirmParetoMinPhiInitial, _settings.FirmPareto_k);
                     _phi = _phi0;

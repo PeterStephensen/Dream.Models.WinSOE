@@ -581,7 +581,7 @@ namespace Dream.Models.WinSOE
         {
             Running = false;
 
-            toolStripStatusLabelMainForm.Text = "Finalized in " + (DateTime.Now - _t0).ToString();
+            toolStripStatusLabelMainForm.Text = "Finalized in " + (DateTime.Now - _t0).ToString() + " [Seed=" + _simulation.Seed + "]";
             toolStripStatusLabelYear.Text = "";
 
             labelBuffer.Hide();
@@ -1183,7 +1183,7 @@ namespace Dream.Models.WinSOE
             InvestorWealth, InvestorTakeOut, InvestorWealthTarget, InvestorIncome, InvestorPermanentIncome,
             RealInterestRate, ExpectedRealInterestRate, Wage, WageInflation, NewFirms, ClosedFirms, 
             nJobFromUnemployment, nJobFromJob, nJobFromUnemploymentAdvertise, nJobFromJobAdvertise, 
-            Inheritance, Extra;
+            Inheritance, SigmaRisk, DiscountedExpectedProfits, Extra;
 
         public int Wait;
         public MicroData MicroData;
@@ -1212,7 +1212,6 @@ namespace Dream.Models.WinSOE
             Stock = new double[n];
             Wealth = new double[n];
             LaborSupplyProductivity = new double[n];
-            //ProfitPerHousehold = new double[n];
             Profit = new double[n];
             InterestRate = new double[n];
             ExpectedInterestRate = new double[n];
@@ -1229,6 +1228,8 @@ namespace Dream.Models.WinSOE
             nJobFromUnemploymentAdvertise = new double[n];
             nJobFromJobAdvertise = new double[n];
             Inheritance = new double[n];
+            SigmaRisk = new double[n];
+            DiscountedExpectedProfits = new double[n];
             Extra = new double[n];
 
         }

@@ -423,7 +423,7 @@
         /// Smoothing parameter in calculation of permanent profit income
         /// </summary>
         [Tweakable(0.5, 1)]
-        public double InvestorSmoothIncome { get; set; } = 0.99;
+        public double InvestorSmoothIncome { get; set; } = 1.0;  //0.99
         /// <summary>
         /// Investors target for wealth-income-ratio in buffer-stock-behavior
         /// </summary>

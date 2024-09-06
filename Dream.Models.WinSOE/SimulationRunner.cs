@@ -256,12 +256,10 @@ namespace Dream.Models.WinSOE
                 settings.ShockPeriod = 1400 * 12;
             }
 
-            //settings.HouseholdTheory = EHouseholdTheory.BehavioralSavings;
-            //settings.HouseholdTheory = EHouseholdTheory.FixedSavingsRate;
-            settings.HouseholdTheory = EHouseholdTheory.BufferStock;              //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            settings.HouseholdTheory = EHouseholdTheory.BufferStock;
 
             //if (!saveScenario)
-            //    settings.RandomSeed = 100;
+            //    settings.RandomSeed = 123;
 
             settings.BurnInPeriod1 = 25 * 12;    
             settings.BurnInPeriod2 = 40 * 12;    

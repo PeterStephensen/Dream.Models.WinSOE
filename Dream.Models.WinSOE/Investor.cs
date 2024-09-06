@@ -32,6 +32,8 @@ namespace Dream.Models.WinSOE
 
         double[] _sharpeRatio;
         double[] _expectedSharpeRatio;
+        double[] _discExpProfits;   // Discounted expected profits. Used to calculate Sharp ratio
+        double[] _sigmaRisk;              // Risk (standard deviation) in sector
         double[] _nNewFirms;
         double[][] _nFirmNewHistory;
         double _interestRate;
@@ -46,10 +48,11 @@ namespace Dream.Models.WinSOE
 
             _wealth = wealth;
             _permanentIncome = permanentIncome;
-            //_kappa = _settings.InvestorWealthIncomeRatioTarget;
 
             _sharpeRatio = new double[_settings.NumberOfSectors];
             _expectedSharpeRatio = new double[_settings.NumberOfSectors];
+            _discExpProfits = new double[_settings.NumberOfSectors];   // Discounted expected profits. Used to calculate Sharp ratio
+            _sigmaRisk = new double[_settings.NumberOfSectors];              // Risk (standard deviation) in sector
             _nNewFirms = new double[_settings.NumberOfSectors];
 
             _nFirmNewHistory = new double[(1 + _settings.EndYear - _settings.StartYear) * _settings.PeriodsPerYear][];
@@ -101,34 +104,33 @@ namespace Dream.Models.WinSOE
             double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
 
             // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
-            double[] discExpProfits = new double[_settings.NumberOfSectors];   // Discounted expected profits. Used to calculate Sharp ratio
+
             int[] nFirms = new int[_settings.NumberOfSectors];                 // Number of firms in sector
             foreach (var fi in _statistics.FirmInfos)
             {
                 double n = _nFirmNewHistory[_time.Now - fi.Age][fi.Sector];  // Number of firms started fi.Age periods ago
                 double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
 
-                discExpProfits[fi.Sector] += n > 0 ? fi.Profit * disc / n : 0;       // Discounted expected profit per new born firm
+                _discExpProfits[fi.Sector] += n > 0 ? fi.Profit * disc / n : 0;       // Discounted expected profit per new born firm
                 nFirms[fi.Sector]++;
             }
 
             for(int i=0; i<_settings.NumberOfSectors; i++)
-                discExpProfits[i] = discExpProfits[i] / nFirms[i];
+                _discExpProfits[i] = _discExpProfits[i] / nFirms[i];
 
-            double[] sigmaRisk = new double[_settings.NumberOfSectors];              // Risk (standard deviation) in sector
             foreach(var fi in _statistics.FirmInfos)
             {
                 double n = _nFirmNewHistory[_time.Now - fi.Age][fi.Sector];  // Number of firms started fi.Age periods ago
                 double disc = 1 / Math.Pow(1 + r, fi.Age);                           // Discount factor
 
-                sigmaRisk[fi.Sector] += n > 0 ? Math.Pow((fi.Profit * disc / n) - discExpProfits[fi.Sector], 2) : 0;       // Discounted expected profit per new born firm
+                _sigmaRisk[fi.Sector] += n > 0 ? Math.Pow((fi.Profit * disc / n) - _discExpProfits[fi.Sector], 2) : 0;       // Discounted expected profit per new born firm
                 //sigmaRisk[fi.Sector] = 1;
             }
-            for (int i = 0; i < _settings.NumberOfSectors; i++) sigmaRisk[i] = Math.Sqrt(sigmaRisk[i] / nFirms[i]);
+            for (int i = 0; i < _settings.NumberOfSectors; i++) _sigmaRisk[i] = Math.Sqrt(_sigmaRisk[i] / nFirms[i]);
 
             for (int i = 0; i < _settings.NumberOfSectors; i++)
             {
-                _sharpeRatio[i] = sigmaRisk[i] > 0 ? discExpProfits[i] / sigmaRisk[i] : 0; 
+                _sharpeRatio[i] = _sigmaRisk[i] > 0 ? _discExpProfits[i] / _sigmaRisk[i] : 0; 
                 _expectedSharpeRatio[i] = _settings.StatisticsExpectedSharpeRatioSmooth * _expectedSharpeRatio[i] + (1 - _settings.StatisticsExpectedSharpeRatioSmooth) * _sharpeRatio[i];
             }
 
@@ -145,7 +147,8 @@ namespace Dream.Models.WinSOE
                     totWealth += h.Wealth;
 
                 if (totWealth > 0)
-                    _interestRate = _simulation.Investor.TakeOut / totWealth;
+                    _interestRate = _statistics.TotalProfit / totWealth;
+                    //_interestRate = _simulation.Investor.TakeOut / totWealth;
             }
         }
 
@@ -254,7 +257,17 @@ namespace Dream.Models.WinSOE
 
         public double[] SharpeRatio { get { return _sharpeRatio; } }
         public double[] ExpectedSharpeRatio { get { return _expectedSharpeRatio; } }
+
+        public double[] SigmaRisk { get { return _sigmaRisk; } }
+        public double[] DiscountedExpectedProfits { get { return _discExpProfits; } }
+
+
         #endregion
+
+
+
+
+
 
         #region OldStuff
         public void Iterate_OLD()

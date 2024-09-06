@@ -217,6 +217,7 @@ namespace Dream.Models.WinSOE
                     _expSharpeRatio = investor.ExpectedSharpeRatio;
 
                     _sharpeRatioTotal = investor.SharpeRatio[0];
+                    _sigmaRiskTotal     = investor.SigmaRisk[0];
                     _expSharpeRatioTotal = investor.ExpectedSharpeRatio[0];
 
                     _interestRate = investor.InterestRate;
@@ -560,6 +561,10 @@ namespace Dream.Models.WinSOE
                     _chartData.Production[_time.Now] = _totalProduction / corr;
                     _chartData.SharpeRatio[_time.Now] = _sharpeRatioTotal;
                     _chartData.ExpectedSharpeRatio[_time.Now] = _expSharpeRatioTotal;
+
+                    _chartData.DiscountedExpectedProfits[_time.Now] = _simulation.Investor.DiscountedExpectedProfits[0] / _expextedPrice / corr;
+                    _chartData.SigmaRisk[_time.Now] = _simulation.Investor.SigmaRisk[0];
+
                     _chartData.UnemploymentRate[_time.Now] = 1.0 * _n_unemployed / _n_laborSupply;
                     _chartData.ConsumptionLoss[_time.Now] = consLoss;
                     _chartData.Stock[_time.Now] = _stock / _totalProduction;
@@ -587,8 +592,6 @@ namespace Dream.Models.WinSOE
 
                     if (_time.Now > 2)
                     {
-                        //_chartData.Inflation[_time.Now] =
-                        //    Math.Pow(_chartData.Price[_time.Now] / _chartData.Price[_time.Now - 1], 12) - 1;
 
                         _chartData.RealWageInflation[_time.Now] =
                             Math.Pow(_chartData.RealWage[_time.Now] / (_chartData.RealWage[_time.Now - 1] / (1 + gg)), 12) - 1;
@@ -658,7 +661,7 @@ namespace Dream.Models.WinSOE
 #endif
                     #endregion
 
-                    #region More stuff
+                    #region Shocks
                     // Shock: Productivity shock
                     if (_time.Now == _settings.ShockPeriod)
                     {
@@ -692,7 +695,9 @@ namespace Dream.Models.WinSOE
                             _settings.MacroProductivity = _macroProductivity0 + _shockSizeAbs;
                         }
                     }
+                    #endregion
 
+                    #region Write to text files
                     int nFirmClosed = _nFirmCloseNatural + _nFirmCloseNegativeProfit + _nFirmCloseTooBig + _nFirmCloseZeroEmployment;
                     //_fileMacro.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, _expSharpeRatioTotal, _macroProductivity, _marketPriceTotal, 
                     _fileMacro.WriteLineTab(_settings.RandomSeed, Environment.MachineName, _runName, _time.Now, 
@@ -704,14 +709,17 @@ namespace Dream.Models.WinSOE
                                             mean_age, tot_vacancies, _marketPrice[0], _marketWage[0], 
                                             _employment[0], _sales[0], 
                                             _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, 
-                                            _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock);
+                                            _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock, _totalProfit);
 
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
                     {
                         _fileSectors.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, i,
                         _marketPrice[i], _marketWage[i], _marketPriceTotal, _marketWageTotal, _employment[i], _production[i],
                         _sales[i], _expSharpeRatio[i], _simulation.Sector(i).Count);
-                    }                    
+                    }
+                    #endregion
+                    
+                    #region More stuff
 
                     _nFirmCloseNatural = 0;
                     _nFirmCloseTooBig = 0;
@@ -741,7 +749,7 @@ namespace Dream.Models.WinSOE
                     //    n_firms, _simulation.Households.Count, w_infl, p_infl, _avrProductivity, _totalSales/1000, totalConsumption/1000, 
                     //    _vb, real_w, _expSharpeRatio[0], 1.0*_n_unemployed/_n_laborSupply);
                     #endregion
-
+                    
                     break;
 
                 case Event.System.Stop:
@@ -1062,7 +1070,7 @@ namespace Dream.Models.WinSOE
                    "marketWage\tnFirms\tEmployment\tSales\tLaborSupply\tnLaborSupply\tnUnemployed\t" +
                    "Production\tnHouseholds\tnFirmNew\tnFirmClosed\tSigmaRisk\tSharpeRatio\tMeanAge\t" +
                    "Vacancies\tmarketPrice0\tmarketWage0\temployment0\tsales0\tnFirm0\texpShapeRatio0\ttotalRevenues\t" +
-                   "PotensialSales\tInterestRate\tRealWealth\tStock");
+                   "PotensialSales\tInterestRate\tRealWealth\tStock\tProfit");
 
             if (File.Exists(sectorsPath)) File.Delete(sectorsPath);
             _fileSectors = File.CreateText(sectorsPath);

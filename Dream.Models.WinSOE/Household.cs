@@ -128,6 +128,7 @@ namespace Dream.Models.WinSOE
                     if (_startFromDatabase)
                     {
                         _initialHousehold = false;
+
                     }
                     else
                     {
