@@ -104,6 +104,11 @@ namespace Dream.Models.WinSOE
             double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
 
             // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
+            for (int s = 0; s<_settings.NumberOfSectors;s++)
+            {
+                _discExpProfits[s] = 0;
+                _sigmaRisk[s] = 0;
+            }
 
             int[] nFirms = new int[_settings.NumberOfSectors];                 // Number of firms in sector
             foreach (var fi in _statistics.FirmInfos)
@@ -170,6 +175,9 @@ namespace Dream.Models.WinSOE
                         investorProfitSensitivity = _settings.InvestorProfitSensitivityBurnIn;
 
                     _nNewFirms[i] += investorProfitSensitivity * _expectedSharpeRatio[i] * _nNewFirms[i];
+
+
+
                 }
             }
 
@@ -182,8 +190,11 @@ namespace Dream.Models.WinSOE
                     int n = _simulation.Random.NextInteger(_nNewFirms[i]);
                     for (int j = 0; j < n; j++)
                         _simulation.SectorList[i] += new Firm(i);
+
+
+
                 }
-            }
+            }            
         }
 
         public void Iterate()
