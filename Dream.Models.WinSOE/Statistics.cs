@@ -220,6 +220,12 @@ namespace Dream.Models.WinSOE
                     _sigmaRiskTotal     = investor.SigmaRisk[0];
                     _expSharpeRatioTotal = investor.ExpectedSharpeRatio[0];
 
+                    int zz = 0;
+                    if (_time.Now > 12 * 110)
+                        zz = 1;
+
+
+
                     _interestRate = investor.InterestRate;
 
                     if (_time.Now > _settings.BurnInPeriod2)
@@ -711,6 +717,9 @@ namespace Dream.Models.WinSOE
                                             _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, 
                                             _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock, _totalProfit);
 
+
+
+
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
                     {
                         _fileSectors.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, i,
@@ -1062,8 +1071,8 @@ namespace Dream.Models.WinSOE
 
                 }
             }
-#endregion
-
+            #endregion
+           
             if (File.Exists(macroPath)) File.Delete(macroPath);
             _fileMacro = File.CreateText(macroPath);
             _fileMacro.WriteLine("Scenario\tMachine\tRun\tTime\texpSharpeRatio\tmacroProductivity\tmarketPrice\t" +
