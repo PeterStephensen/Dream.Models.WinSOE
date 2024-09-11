@@ -58,7 +58,7 @@ namespace Dream.Models.WinSOE
             }
 
             // Scale
-            double scale = 5 * 1.0; //5
+            double scale = 1 * 5 * 1.0; //5
 
             settings.NumberOfSectors = 1;
             settings.NumberOfFirms = (int)(150 * scale); 
@@ -189,7 +189,7 @@ namespace Dream.Models.WinSOE
             settings.StatisticsFirmReportSampleSize = 0.05 * 5 / scale;//0.1
             settings.StatisticsHouseholdReportSampleSize = 0.0051 * 5 / scale;
 
-            settings.StatisticsExpectedSharpeRatioSmooth = 0.95; //0.7   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+            settings.StatisticsExpectedSharpeRatioSmooth = 0.9224; //0.95
 
 
             if(outputDir=="")

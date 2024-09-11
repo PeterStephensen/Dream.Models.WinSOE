@@ -37,6 +37,8 @@ namespace Dream.Models.WinSOE
         double[] _nNewFirms;
         double[][] _nFirmNewHistory;
         double _interestRate;
+
+        StreamWriter _sw;
         #endregion
 
         public Investor(double wealth, double permanentIncome)
@@ -59,6 +61,9 @@ namespace Dream.Models.WinSOE
             for (int i = 0; i < _nFirmNewHistory.Length; i++)
                 _nFirmNewHistory[i] = new double[_settings.NumberOfSectors];
 
+            _sw = new StreamWriter(_settings.OutputDir + "//Investor.txt");
+
+
         }
 
         public override void EventProc(int idEvent)
@@ -76,6 +81,7 @@ namespace Dream.Models.WinSOE
                     break;
 
                 case Event.System.Stop:
+                    _sw.Close();    
                     break;
 
                 default:
@@ -101,7 +107,8 @@ namespace Dream.Models.WinSOE
             //--------------------------------------------------------------------------------
 
             // Interest rate - Inflation and growth corrected
-            double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
+            //double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
+            double r = _statistics.ExpectedRealInterestRate;   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
             for (int s = 0; s<_settings.NumberOfSectors;s++)
@@ -163,7 +170,8 @@ namespace Dream.Models.WinSOE
             {
                 for(int i=0; i<_settings.NumberOfSectors; i++)
                 {
-                    _nNewFirms[i] = _settings.InvestorInitialInflow;
+                    //_nNewFirms[i] = _settings.InvestorInitialInflow;
+                    _nNewFirms[i] = _settings.InvestorInitialInflow / _settings.NumberOfSectors;
                 }
             }
             else
@@ -175,7 +183,6 @@ namespace Dream.Models.WinSOE
                         investorProfitSensitivity = _settings.InvestorProfitSensitivityBurnIn;
 
                     _nNewFirms[i] += investorProfitSensitivity * _expectedSharpeRatio[i] * _nNewFirms[i];
-
 
 
                 }
@@ -194,7 +201,15 @@ namespace Dream.Models.WinSOE
 
 
                 }
-            }            
+            }
+            
+            string s = _time.Now.ToString();
+            for (int i = 0; i < _settings.NumberOfSectors; i++)
+                s += "\t" + _nNewFirms[i];
+
+            _sw.WriteLineTab(s);
+
+
         }
 
         public void Iterate()

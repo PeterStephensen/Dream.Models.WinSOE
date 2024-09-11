@@ -349,21 +349,15 @@ namespace Dream.Models.WinSOE
 
             double smooth2 = 0.3;
 
-            //_expQuitters          = smooth * _expQuitters          + (1 - smooth) * _jobQuitters;
-            //_expApplications      = smooth * _expApplications      + (1 - smooth) * _jobApplications;
             _expQuitters = smooth * _expQuitters + (1 - smooth) * _jobQuittersProductivity;
             _expApplications = smooth * _expApplications + (1 - smooth) * _jobApplicationsProductivity;
             _expPotentialSales = smooth2 * _expPotentialSales    + (1 - smooth2) * _potentialSales;
             _expSales             = smooth2 * _expSales + (1 - smooth2) * _sales;
-            //_expEmployment        = smooth2 * _expEmployment        + (1 - smooth2) * CalcEmployment();
             _expEmployment = 0 * _expEmployment + (1 - 0) * CalcEmployment(); //zzz    
             _expVacancies         = smooth * _expVacancies         + (1 - smooth) * _vacancies;
             _expOptimalProduction = smooth * _expOptimalProduction + (1 - smooth) * _y_optimal;
             _expOptimalEmployment = smooth * _expOptimalEmployment + (1 - smooth) * _l_optimal;
 
-            // The firm expects the real wage to grow with productivity
-            //_expPrice = _statistics.PublicMarketPrice[_sector];
-            //_expWage = _statistics.PublicMarketWageTotal * Math.Pow(1 + _settings.FirmProductivityGrowth, 1.0 / _settings.PeriodsPerYear);
             //PSP
             double smooth_wp = 0.3;
             _expPrice = smooth_wp * _expPrice + (1 - smooth_wp) * _p;
@@ -400,6 +394,7 @@ namespace Dream.Models.WinSOE
             }
 
             _l_optimal = Math.Pow(alpha * _phi * gamma_y * price / wage, 1 / (1 - alpha)); // Optimal employment
+            //_l_optimal = 0.85 * _l_optimal + (1-0.85) * Math.Pow(alpha * _phi * gamma_y * price / wage, 1 / (1 - alpha)); // Optimal employment
 
             if (_l_optimal > _settings.FirmMaxEmployment)
                 _l_optimal = _settings.FirmMaxEmployment;

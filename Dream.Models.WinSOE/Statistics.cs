@@ -44,6 +44,7 @@ namespace Dream.Models.WinSOE
         StreamWriter _fileMacro;
         StreamWriter _fileSectors;
         StreamWriter _fileFirmApplications;
+        StreamWriter _fileTest;
         double[] _sectorProductivity;
         double _expectedInterestRate;
         double _meanValue = 0;
@@ -230,10 +231,11 @@ namespace Dream.Models.WinSOE
 
                     if (_time.Now > _settings.BurnInPeriod2)
                     {                   
-                        double smooth = 0.99;  //0.99
+                        double smooth = 0.95;  //0.99
                         if (_time.Now > _settings.BurnInPeriod3)
                         {
                             _expectedInterestRate = smooth * _expectedInterestRate + (1 - smooth) * _interestRate;
+                            //_expectedInterestRate = 0.35 * _expectedInterestRate + (1 - 0.35) * _interestRate;
                             _expectedInflation = smooth * _expectedInflation + (1 - smooth) * _inflation;
                             _expectedRealwageInflation = smooth * _expectedRealwageInflation + (1 - smooth) * _realwageInflation;
                             _expectedRealInterestRate = smooth * _expectedRealInterestRate + (1 - smooth) * _realInterestRate;
@@ -718,16 +720,17 @@ namespace Dream.Models.WinSOE
                                             _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock, _totalProfit);
 
 
-
-
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
                     {
                         _fileSectors.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, i,
                         _marketPrice[i], _marketWage[i], _marketPriceTotal, _marketWageTotal, _employment[i], _production[i],
                         _sales[i], _expSharpeRatio[i], _simulation.Sector(i).Count);
                     }
-                    #endregion
                     
+                    _fileTest.WriteLineTab(_time.Now, _marketPriceTotal, _marketWageTotal, _sharpeRatio[0], _inflation, _interestRate, _realInterestRate);
+                    
+                    #endregion
+
                     #region More stuff
 
                     _nFirmCloseNatural = 0;
@@ -1086,6 +1089,12 @@ namespace Dream.Models.WinSOE
             _fileSectors.WriteLine("Scenario\tMachine\tRun\tTime\tSector\tPrice\tWage\tPriceTotal\tWageTotal\tEmployment\tProduction\tSales\tExpShapeRatio\tnFirm");
 
 
+            //Test file
+            string testPath = Path("test.txt");
+            if (File.Exists(testPath)) File.Delete(testPath);
+            _fileTest = File.CreateText(testPath);
+            _fileTest.WriteLineTab("Time", "Price", "Wage", "SharpeRatio","Inflation", "InterestRate", "RealInterestRate");
+
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //if (File.Exists(settingsPath)) File.Delete(settingsPath);
             //var options = new JsonSerializerOptions { WriteIndented = true };
@@ -1103,6 +1112,8 @@ namespace Dream.Models.WinSOE
                 _fileMacro.Close();
                 _fileSectors.Close();
             }
+            _fileTest.Close();
+
         }
         void WriteAvrFile(int n)
         {
