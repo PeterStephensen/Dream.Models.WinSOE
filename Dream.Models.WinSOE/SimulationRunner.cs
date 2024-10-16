@@ -248,7 +248,10 @@ namespace Dream.Models.WinSOE
             settings.UIChartUpdateInterval = 1 * 12;  //5 * 12 
             settings.UIChartTimeWindow = 50 * 12;
 
-            if(!settings.SaveScenario)
+            settings.ShockSize = 0.05;
+
+
+            if (!settings.SaveScenario)
             {
                 //settings.Shock = EShock.Productivity;
                 //settings.Shock = EShock.Tsunami;
