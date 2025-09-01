@@ -59,7 +59,6 @@ Event.System.PeriodEnd:
 		(In Statistics: Add firm to _firmInfo)
 	age++
 
------------------ 
 Internal methods:
 -----------------
 Expectations()
@@ -176,7 +175,6 @@ Event.System.PeriodEnd:
 		_w_reservation decreased and corrected for expected inflation 
 	age++
 
------------------ 
 Internal methods:
 -----------------
 BufferStock() : See note
@@ -218,8 +216,8 @@ Statistics
 FirmInfo-class. Members: Age, Sector, Profit 
 
 Event.System.PeriodStart:
-	investor.CalculateSharpeRatiosAndInterestRate()
 	Calculate _totalProfit from _firmInfo's
+	investor.CalculateSharpeRatiosAndInterestRate()
 	Calculate _expectedInterestRate
 	Calculate _expectedInflation
 	Calculate _expectedRealwageInflation
@@ -236,10 +234,10 @@ Event.System.PeriodEnd:
 	Writing output files
 
 Communicate(): Measuring flows by receiving EStatistics-elements
- EStatistics.FirmCloseTooBig                        -> _nFirmCloseTooBig
- EStatistics.FirmCloseNegativeProfit                -> _nFirmCloseNegativeProfit
- EStatistics.FirmCloseZeroEmployment                -> _nFirmCloseZeroEmployment
- EStatistics.Profit                                 -> f = (Firm)o;_firmInfo.Add(new FirmInfo(f));
+ EStatistics.FirmCloseTooBig                        -> _nFirmCloseTooBig++;         _firmInfo.Add(new FirmInfo(f));
+ EStatistics.FirmCloseNegativeProfit                -> _nFirmCloseNegativeProfit++; _firmInfo.Add(new FirmInfo(f));
+ EStatistics.FirmCloseZeroEmployment                -> _nFirmCloseZeroEmployment++; _firmInfo.Add(new FirmInfo(f));
+ EStatistics.Profit                                 ->                              _firmInfo.Add(new FirmInfo(f));
  EStatistics.FirmNew                                -> _nFirmNew
  EStatistics.CouldNotFindSupplier                   -> _n_couldNotFindSupplier 
  EStatistics.ChangeShopInSearchForShop              -> _nChangeShopInSearchForShop
@@ -257,7 +255,12 @@ Communicate(): Measuring flows by receiving EStatistics-elements
  EStatistics.Inheritance                            -> _inheritence
 
 
-
+---------------------------------------------------------------------------------
+Investor
+---------------------------------------------------------------------------------
+Methods:
+    CalculateSharpeRatiosAndInterestRate(): Run under Event.System.PeriodStart in Statistics
+	Invest():                               Run under Event.System.PeriodEnd   in Simulation
 
 
 

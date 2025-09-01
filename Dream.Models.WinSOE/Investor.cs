@@ -16,7 +16,7 @@ namespace Dream.Models.WinSOE
         #endregion
 
         #region Private fields
-        Simulation _simulation;
+        Simulation _simulation; 
         Settings _settings;
         Time _time;
         Statistics _statistics;
@@ -37,6 +37,7 @@ namespace Dream.Models.WinSOE
         double[] _nNewFirms;
         double[][] _nFirmNewHistory;
         double _interestRate;
+        double _totalProfit, _totalWealth;
 
         StreamWriter _sw;
         #endregion
@@ -101,14 +102,21 @@ namespace Dream.Models.WinSOE
             }
         }
 
+        /// <summary>
+        /// Run this under Event.System.PeriodStart in Statistics
+        /// </summary>
         public void CalculateSharpeRatiosAndInterestRate()
         {
+            
             // This method should be called in Statistics under Event.System.PeriodStart
             //--------------------------------------------------------------------------------
 
             // Interest rate - Inflation and growth corrected
             //double r = (1 + _statistics.ExpectedRealInterestRate) / (1 + _statistics.GrowthPerPeriod) - 1.0;
             double r = _statistics.ExpectedRealInterestRate;   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            //if (r < 0)
+            //    r = 0;
 
             // The list _statistics.FirmInfo contains info on firms that existed primo last period (now alive or defaulted)
             for (int s = 0; s<_settings.NumberOfSectors;s++)
@@ -154,16 +162,20 @@ namespace Dream.Models.WinSOE
             }
             else
             {
-                double totWealth = 0;
+                _totalWealth = 0;
                 foreach (Household h in _simulation.Households)
-                    totWealth += h.Wealth;
+                    _totalWealth += h.Wealth;
 
-                if (totWealth > 0)
-                    _interestRate = _statistics.TotalProfit / totWealth;
+                _totalProfit = _statistics.TotalProfit;
+                if (_totalWealth > 0)
+                    _interestRate =  _totalProfit/ _totalWealth;
                     //_interestRate = _simulation.Investor.TakeOut / totWealth;
             }
         }
 
+        /// <summary>
+        /// Run this under Event.System.PeriodEnd   in Simulation
+        /// </summary>
         public void Invest()
         {
             if (_time.Now < _settings.BurnInPeriod2)
@@ -184,7 +196,6 @@ namespace Dream.Models.WinSOE
 
                     _nNewFirms[i] += investorProfitSensitivity * _expectedSharpeRatio[i] * _nNewFirms[i];
 
-
                 }
             }
 
@@ -198,8 +209,6 @@ namespace Dream.Models.WinSOE
                     for (int j = 0; j < n; j++)
                         _simulation.SectorList[i] += new Firm(i);
 
-
-
                 }
             }
             
@@ -212,6 +221,7 @@ namespace Dream.Models.WinSOE
 
         }
 
+        // Reduntant!!!!!!
         public void Iterate()
         {
             if (Active)
@@ -252,8 +262,10 @@ namespace Dream.Models.WinSOE
 
         }
 
-
         #region Public Properties
+        public double TotalProfit    { get { return _totalProfit; } }
+        public double TotalWealth    { get { return _totalWealth; } }
+
         /// <summary>
         /// Take out for consumption (can be negative = loan from households)
         /// </summary>
@@ -289,11 +301,6 @@ namespace Dream.Models.WinSOE
 
 
         #endregion
-
-
-
-
-
 
         #region OldStuff
         public void Iterate_OLD()

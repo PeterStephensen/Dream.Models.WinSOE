@@ -167,7 +167,7 @@ namespace Dream.Models.WinSOE
             
             //settings.HouseholdProbabilityRecalculateBudget=0.1;
 
-            settings.HouseholdMPCWealth = 0.005;   //0.25
+            settings.HouseholdMPCWealth = 0.005;   //0.005
             settings.HouseholdMPCIncome = 0.95;   //0.75
             settings.HouseholdMPCCapitalIncome = 0.1;   //0.75
 

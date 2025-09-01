@@ -396,6 +396,16 @@ namespace Dream.Models.WinSOE
                     + mpc_c * (r - r_exp) * _wealth
                     + mpc_w * (_wealth - _wealth_target);
 
+                
+                double min_budget = 0.5 * _expected_income; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                if(_consumption_budget < min_budget)
+                    _consumption_budget = min_budget;
+
+
+                if (_consumption_budget < 0)
+                    throw new Exception("_consumption_budget < 0");
+
+
             }
         }
         void BehavioralSavings()

@@ -708,6 +708,7 @@ namespace Dream.Models.WinSOE
                     #region Write to text files
                     int nFirmClosed = _nFirmCloseNatural + _nFirmCloseNegativeProfit + _nFirmCloseTooBig + _nFirmCloseZeroEmployment;
                     //_fileMacro.WriteLineTab(_scenario_id, Environment.MachineName, _runName, _time.Now, _expSharpeRatioTotal, _macroProductivity, _marketPriceTotal, 
+                       
                     _fileMacro.WriteLineTab(_settings.RandomSeed, Environment.MachineName, _runName, _time.Now, 
                                             _expSharpeRatioTotal, _settings.MacroProductivity, _marketPriceTotal,
                                             _marketWageTotal,n_firms, _totalEmployment, _totalSales, _laborSupplyProductivity, 
@@ -717,7 +718,7 @@ namespace Dream.Models.WinSOE
                                             mean_age, tot_vacancies, _marketPrice[0], _marketWage[0], 
                                             _employment[0], _sales[0], 
                                             _simulation.Sector(0).Count, _expSharpeRatio[0], totalRevenues, 
-                                            _totalPotensialSales, _expectedInterestRate, _wealth / _marketPriceTotal, _stock, _totalProfit);
+                                            _totalPotensialSales, _expectedInterestRate, _simulation.Investor.TotalWealth / _marketPriceTotal, _stock, _simulation.Investor.TotalProfit);
 
 
                     for (int i = 0; i < _settings.NumberOfSectors; i++)
@@ -797,7 +798,7 @@ namespace Dream.Models.WinSOE
             }
         }
         
-       public void Communicate(EStatistics comID, object o)
+        public void Communicate(EStatistics comID, object o)
         {
             Firm f = null;
             Household h = null;
