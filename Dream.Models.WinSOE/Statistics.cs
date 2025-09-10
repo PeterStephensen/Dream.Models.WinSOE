@@ -728,7 +728,7 @@ namespace Dream.Models.WinSOE
                         _sales[i], _expSharpeRatio[i], _simulation.Sector(i).Count);
                     }
                     
-                    _fileTest.WriteLineTab(_time.Now, _marketPriceTotal, _marketWageTotal, _sharpeRatio[0], _inflation, _interestRate, _realInterestRate);
+                    //_fileTest.WriteLineTab(_time.Now, _marketPriceTotal, _marketWageTotal, _sharpeRatio[0], _inflation, _interestRate, _realInterestRate);
                     
                     #endregion
 
@@ -1091,10 +1091,10 @@ namespace Dream.Models.WinSOE
 
 
             //Test file
-            string testPath = Path("test.txt");
-            if (File.Exists(testPath)) File.Delete(testPath);
-            _fileTest = File.CreateText(testPath);
-            _fileTest.WriteLineTab("Time", "Price", "Wage", "SharpeRatio","Inflation", "InterestRate", "RealInterestRate");
+            //string testPath = Path("test.txt");
+            //if (File.Exists(testPath)) File.Delete(testPath);
+            //_fileTest = File.CreateText(testPath);
+            //_fileTest.WriteLineTab("Time", "Price", "Wage", "SharpeRatio","Inflation", "InterestRate", "RealInterestRate");
 
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //if (File.Exists(settingsPath)) File.Delete(settingsPath);
@@ -1113,7 +1113,7 @@ namespace Dream.Models.WinSOE
                 _fileMacro.Close();
                 _fileSectors.Close();
             }
-            _fileTest.Close();
+            //_fileTest.Close();
 
         }
         void WriteAvrFile(int n)
