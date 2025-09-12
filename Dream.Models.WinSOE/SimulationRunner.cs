@@ -331,8 +331,8 @@ namespace Dream.Models.WinSOE
             #endregion
 
 #if !WIN_APP
-            settings.EndYear = 300;
-            settings.ShockPeriod = 200 * 12;
+            settings.EndYear = 400;
+            settings.ShockPeriod = 300 * 12;
             settings.Shock = shock;
 #endif
 
