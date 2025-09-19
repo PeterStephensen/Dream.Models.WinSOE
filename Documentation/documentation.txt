@@ -258,9 +258,16 @@ Communicate(): Measuring flows by receiving EStatistics-elements
 ---------------------------------------------------------------------------------
 Investor
 ---------------------------------------------------------------------------------
-Methods:
-    CalculateSharpeRatiosAndInterestRate(): Run under Event.System.PeriodStart in Statistics
-	Invest():                               Run under Event.System.PeriodEnd   in Simulation
+Public methods:
+------------------
+CalculateSharpeRatiosAndInterestRate(): Run under Event.System.PeriodStart in Statistics
+    Calculate SharpeRatios from _statistics.FirmInfo's and _statistics.ExpectedInterestRate
+	Calculate _interestRate = _totalProfit/ _totalWealth from _statistics.FirmInfo's and _households' wealth
+
+Invest(): Run under Event.System.PeriodEnd in Simulation
+    For each sector i: _nNewFirms[i] += investorProfitSensitivity * _expectedSharpeRatio[i] * _nNewFirms[i]
+    Memory:            _nFirmNewHistory[_time.Now][i] = _nNewFirms[i]
+
 
 
 

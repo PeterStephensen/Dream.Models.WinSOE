@@ -646,7 +646,10 @@ namespace Dream.Models.WinSOE
             {
                 Firm f = GetRandomFirm(sector);
 
-                if(f.Open)
+                if (f == null)
+                    throw new Exception("GetNextFirmWithGoods: No firms in sector " + sector.ToString());
+
+                if (f.Open)
                 {
                     if ((f.Production - f.Sales) * f.Price > budget)
                         return f;

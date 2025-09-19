@@ -58,14 +58,14 @@ namespace Dream.Models.WinSOE
             }
 
             // Scale
-            double scale = 1 * 5 * 1.0; //5
+            double scale = 5 * 5 * 1.0; //5
 
-            settings.NumberOfSectors = 1;
+            settings.NumberOfSectors = 10;
             settings.NumberOfFirms = (int)(150 * scale); 
             settings.NumberOfHouseholdsPerFirm = 1*5;  //5
             settings.HouseholdNewBorn = (int)(6 * scale);   //5   
             settings.InvestorInitialInflow = (int)(10 * scale);
-            settings.HouseholdNumberShoppingsPerPeriod = 4; // Weekly consumption
+            settings.HouseholdNumberShoppingsPerPeriod = 4; // Weekly consumption  
 
             //Firms
             settings.FirmParetoMinPhi = 0.5;   //0.5

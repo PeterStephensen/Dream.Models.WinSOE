@@ -417,7 +417,7 @@
         /// </summary>
         public int InvestorInitialInflow { get; set; } = 0;
         [Tweakable(0,0.2)]
-        public double InvestorProfitSensitivity { get; set; } = 0.015;  //0.025
+        public double InvestorProfitSensitivity { get; set; } = 0.025;  //0.015
         public double InvestorProfitSensitivityBurnIn { get; set; } = 0.005;  //0 Vigtig for stabilitet!!!!
         /// <summary>
         /// Smoothing parameter in calculation of permanent profit income
